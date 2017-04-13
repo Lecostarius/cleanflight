@@ -1,6 +1,17 @@
 # Building in Ubuntu
 
 Building for Ubuntu platform is remarkably easy. The only trick to understand is that the Ubuntu toolchain,
+which they are downstreaming from Debian, is not compatible with Cleanflight. So, the very first thing to do is to
+remove the gcc crosscompiler that came with your Ubuntu distribution. The package is called 'gcc-arm-none-eabi`:
+
+sudo apt-get remove binutils-arm-none-eabi gcc-arm-none-eabi
+
+and has a dependency 'binutils-arm-none-eabi' 
+
+
+
+
+Building for Ubuntu platform is remarkably easy. The only trick to understand is that the Ubuntu toolchain,
 which they are downstreaming from Debian, is not compatible with Cleanflight. We suggest that you take an
 alternative PPA from Terry Guo, found here:
 https://launchpad.net/~terry.guo/+archive/ubuntu/gcc-arm-embedded
