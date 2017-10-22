@@ -26,9 +26,9 @@
 
 #undef USE_RX_MSP // never used.
 
-#define LED0                    PC15
-#define LED1                    PC14
-#define LED2                    PC13
+#define LED0_PIN                PC15
+#define LED1_PIN                PC14
+#define LED2_PIN                PC13
 
 #define BEEPER                  PB13
 #define BEEPER_INVERTED
@@ -88,7 +88,7 @@
 #define SERIAL_PORT_COUNT       4
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PA8  // (HARDARE=0,PPM)
 
 #define UART1_TX_PIN            PC4
 #define UART1_RX_PIN            PC5
@@ -117,7 +117,7 @@
 #define RSSI_ADC_PIN            PC2
 #define EXTERNAL1_ADC_PIN       PC3
 
-#define DEFAULT_FEATURES        (FEATURE_FAILSAFE | FEATURE_AIRMODE | FEATURE_LED_STRIP)
+#define DEFAULT_FEATURES        (FEATURE_AIRMODE | FEATURE_LED_STRIP)
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART2
@@ -133,4 +133,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 12
 #define USED_TIMERS             (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(15))
-

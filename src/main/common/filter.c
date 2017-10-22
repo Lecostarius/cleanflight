@@ -67,6 +67,32 @@ float pt1FilterApply4(pt1Filter_t *filter, float input, uint8_t f_cut, float dT)
     return filter->state;
 }
 
+// Slew filter with limit
+
+void slewFilterInit(slewFilter_t *filter, float slewLimit, float threshold)
+{
+    filter->state = 0.0f;
+    filter->slewLimit = slewLimit;
+    filter->threshold = threshold;
+}
+
+float slewFilterApply(slewFilter_t *filter, float input)
+{
+    if (filter->state >= filter->threshold) {
+        if (input >= filter->state - filter->slewLimit) {
+            filter->state = input;
+        }
+    } else if (filter->state <= -filter->threshold) {
+        if (input <= filter->state + filter->slewLimit) {
+            filter->state = input;
+        }
+    } else {
+        filter->state = input;
+    }
+    return filter->state;
+}
+
+
 float filterGetNotchQ(uint16_t centerFreq, uint16_t cutoff) {
     float octaves = log2f((float) centerFreq  / (float) cutoff) * 2;
     return sqrtf(powf(2, octaves)) / (powf(2, octaves) - 1);
@@ -82,8 +108,8 @@ void biquadFilterInit(biquadFilter_t *filter, float filterFreq, uint32_t refresh
 {
     // setup variables
     const float omega = 2.0f * M_PI_FLOAT * filterFreq * refreshRate * 0.000001f;
-    const float sn = sinf(omega);
-    const float cs = cosf(omega);
+    const float sn = sin_approx(omega);
+    const float cs = cos_approx(omega);
     const float alpha = sn / (2.0f * Q);
 
     float b0 = 0, b1 = 0, b2 = 0, a0 = 0, a1 = 0, a2 = 0;
@@ -125,7 +151,6 @@ void biquadFilterInit(biquadFilter_t *filter, float filterFreq, uint32_t refresh
     // zero initial samples
     filter->x1 = filter->x2 = 0;
     filter->y1 = filter->y2 = 0;
-    filter->d1 = filter->d2 = 0;
 }
 
 void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint32_t refreshRate, float Q, biquadFilterType_e filterType)
@@ -135,8 +160,6 @@ void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint32_t refre
     float x2 = filter->x2;
     float y1 = filter->y1;
     float y2 = filter->y2;
-    float d1 = filter->d1;
-    float d2 = filter->d2;
 
     biquadFilterInit(filter, filterFreq, refreshRate, Q, filterType);
 
@@ -145,8 +168,6 @@ void biquadFilterUpdate(biquadFilter_t *filter, float filterFreq, uint32_t refre
     filter->x2 = x2;
     filter->y1 = y1;
     filter->y2 = y2;
-    filter->d1 = d1;
-    filter->d2 = d2;
 }
 
 /* Computes a biquadFilter_t filter on a sample (slightly less precise than df2 but works in dynamic mode) */
@@ -154,11 +175,11 @@ float biquadFilterApplyDF1(biquadFilter_t *filter, float input)
 {
     /* compute result */
     const float result = filter->b0 * input + filter->b1 * filter->x1 + filter->b2 * filter->x2 - filter->a1 * filter->y1 - filter->a2 * filter->y2;
-    
+
     /* shift x1 to x2, input to x1 */
     filter->x2 = filter->x1;
     filter->x1 = input;
-    
+
     /* shift y1 to y2, result to y1 */
     filter->y2 = filter->y1;
     filter->y1 = result;
@@ -169,9 +190,9 @@ float biquadFilterApplyDF1(biquadFilter_t *filter, float input)
 /* Computes a biquadFilter_t filter in direct form 2 on a sample (higher precision but can't handle changes in coefficients */
 float biquadFilterApply(biquadFilter_t *filter, float input)
 {
-    const float result = filter->b0 * input + filter->d1;
-    filter->d1 = filter->b1 * input - filter->a1 * result + filter->d2;
-    filter->d2 = filter->b2 * input - filter->a2 * result;
+    const float result = filter->b0 * input + filter->x1;
+    filter->x1 = filter->b1 * input - filter->a1 * result + filter->x2;
+    filter->x2 = filter->b2 * input - filter->a2 * result;
     return result;
 }
 
@@ -274,6 +295,7 @@ float firFilterLastInput(const firFilter_t *filter)
 
 void firFilterDenoiseInit(firFilterDenoise_t *filter, uint8_t gyroSoftLpfHz, uint16_t targetLooptime)
 {
+    memset(filter, 0, sizeof(firFilterDenoise_t));
     filter->targetCount = constrain(lrintf((1.0f / (0.000001f * (float)targetLooptime)) / gyroSoftLpfHz), 1, MAX_FIR_DENOISE_WINDOW_SIZE);
 }
 
@@ -282,13 +304,14 @@ float firFilterDenoiseUpdate(firFilterDenoise_t *filter, float input)
 {
     filter->state[filter->index] = input;
     filter->movingSum += filter->state[filter->index++];
-    if (filter->index == filter->targetCount)
+    if (filter->index == filter->targetCount) {
         filter->index = 0;
+    }
     filter->movingSum -= filter->state[filter->index];
 
-    if (filter->targetCount >= filter->filledCount)
+    if (filter->targetCount >= filter->filledCount) {
         return filter->movingSum / filter->targetCount;
-    else
+    } else {
         return filter->movingSum / ++filter->filledCount + 1;
+    }
 }
-

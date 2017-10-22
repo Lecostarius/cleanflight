@@ -23,7 +23,7 @@
 #define TARGET_BOARD_IDENTIFIER "KOMB" // Furious FPV KOMBINI
 #elif defined(FF_ACROWHOOPSP)
 #define TARGET_BOARD_IDENTIFIER "AWHS" // Furious FPV ACROWHOOP SPEKTRUM
-#else 
+#else
 #define TARGET_BOARD_IDENTIFIER "PIKO" // Furious FPV PIKOBLX
 #endif
 
@@ -32,8 +32,8 @@
 #define TARGET_CONFIG
 #define BRUSHED_ESC_AUTODETECT
 
-#define LED0                    PB9
-#define LED1                    PB5
+#define LED0_PIN                PB9
+#define LED1_PIN                PB5
 
 #define BEEPER                  PA0
 #define BEEPER_INVERTED
@@ -65,7 +65,11 @@
 #define SERIAL_PORT_COUNT       6
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#if defined(FF_RADIANCE) || defined(FF_KOMBINI)
+#define ESCSERIAL_TIMER_TX_PIN  PA7  // (Hardware=0)
+#else
+#define ESCSERIAL_TIMER_TX_PIN  PA4  // (Hardware=0)
+#endif
 
 #define UART1_TX_PIN            PB6
 #define UART1_RX_PIN            PB7
@@ -93,12 +97,6 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART3
-
-#if defined(FF_RADIANCE)
-#define SPEKTRUM_BIND_PIN       UART2_RX_PIN
-#else
-#define SPEKTRUM_BIND_PIN       UART3_RX_PIN
-#endif
 
 #define TRANSPONDER
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE

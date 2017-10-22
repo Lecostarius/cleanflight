@@ -22,11 +22,11 @@
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_DEFAULT
 
 // tqfp48 pin 34
-#define LED0                    PA13
+#define LED0_PIN                PA13
 // tqfp48 pin 37
-#define LED1                    PA14
+#define LED1_PIN                PA14
 // tqfp48 pin 38
-#define LED2                    PA15
+#define LED2_PIN                PA15
 
 #define BEEPER                  PB2
 #define BEEPER_INVERTED
@@ -69,9 +69,6 @@
 #define M25P16_CS_PIN           PC15
 #define M25P16_SPI_INSTANCE     SPI2
 
-#define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
-
 #define GYRO
 #define USE_GYRO_MPU6500
 #define USE_GYRO_SPI_MPU6500
@@ -101,7 +98,7 @@
 #define SERIAL_PORT_COUNT 6
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PA8 // (Hardware=0)
 
 #define UART1_TX_PIN            PB6
 #define UART1_RX_PIN            PB7
@@ -129,8 +126,6 @@
 #define USE_ESC_SENSOR
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_PPM
-
-#define SPEKTRUM_BIND_PIN       UART3_RX_PIN
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 

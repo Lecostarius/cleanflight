@@ -19,8 +19,8 @@
 
 #define TARGET_BOARD_IDENTIFIER "RGF3" // rgSSD_F3
 
-#define LED0                     PC1
-#define LED1                     PC0
+#define LED0_PIN                 PC1
+#define LED1_PIN                 PC0
 
 #define BEEPER                   PA8
 #define BEEPER_INVERTED
@@ -59,11 +59,10 @@
 #define ENSURE_MPU_DATA_READY_IS_LOW
 
 #define USE_SDCARD
-#define USE_SDCARD_SPI1
 
 #define SDCARD_DETECT_INVERTED
-
 #define SDCARD_DETECT_PIN        PC14
+
 #define SDCARD_SPI_INSTANCE      SPI1
 #define SDCARD_SPI_CS_GPIO       GPIOB
 #define SDCARD_SPI_CS_PIN        SPI1_NSS_PIN
@@ -144,8 +143,6 @@
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
-#define SPEKTRUM_BIND_PIN UART3_RX_PIN
-
 // IO - stm32f303rc in 64pin package
 #define TARGET_IO_PORTA 0xffff
 #define TARGET_IO_PORTB 0xffff
@@ -156,4 +153,3 @@
 #define USED_TIMERS  (TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(16) | TIM_N(17))
 
 #define USABLE_TIMER_CHANNEL_COUNT 9
-

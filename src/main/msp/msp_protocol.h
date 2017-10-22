@@ -149,8 +149,8 @@
 #define MSP_PID_CONTROLLER              59
 #define MSP_SET_PID_CONTROLLER          60
 
-#define MSP_ARMING_CONFIG               61 //out message         Returns auto_disarm_delay and disarm_kill_switch parameters
-#define MSP_SET_ARMING_CONFIG           62 //in message          Sets auto_disarm_delay and disarm_kill_switch parameters
+#define MSP_ARMING_CONFIG               61
+#define MSP_SET_ARMING_CONFIG           62
 
 //
 // Baseflight MSP commands (if enabled they exist in Cleanflight)
@@ -211,6 +211,10 @@
 #define MSP_SENSOR_CONFIG               96
 #define MSP_SET_SENSOR_CONFIG           97
 
+#define MSP_CAMERA_CONTROL              98
+
+#define MSP_ARMING_DISABLE              99
+
 //
 // OSD specific
 //
@@ -219,6 +223,11 @@
 
 // External OSD displayport mode messages
 #define MSP_DISPLAYPORT                 182
+
+#define MSP_COPY_PROFILE                183
+
+#define MSP_BEEPER_CONFIG               184
+#define MSP_SET_BEEPER_CONFIG           185
 
 //
 // Multwii original MSP commands
@@ -263,6 +272,7 @@
 #define MSP_MOTOR_CONFIG         131    //out message         Motor configuration (min/max throttle, etc)
 #define MSP_GPS_CONFIG           132    //out message         GPS configuration
 #define MSP_COMPASS_CONFIG       133    //out message         Compass configuration
+#define MSP_ESC_SENSOR_DATA      134    //out message         Extra ESC data from 32-Bit ESCs (Temperature, RPM)
 
 #define MSP_SET_RAW_RC           200    //in message          8 rc chan
 #define MSP_SET_RAW_GPS          201    //in message          fix, numsat, lat, lon, alt, speed
@@ -310,4 +320,4 @@
 #define MSP_SERVO_MIX_RULES      241    //out message         Returns servo mixer configuration
 #define MSP_SET_SERVO_MIX_RULE   242    //in message          Sets servo mixer configuration
 #define MSP_SET_4WAY_IF          245    //in message          Sets 4way interface
-
+#define MSP_SET_RTC              246    //in message          Sets the RTC clock

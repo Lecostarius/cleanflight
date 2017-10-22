@@ -25,8 +25,8 @@
     #define USBD_PRODUCT_STRING     "FuryF4"
 #endif
 
-#define LED0                    PB5
-#define LED1                    PB4
+#define LED0_PIN                PB5
+#define LED1_PIN                PB4
 
 #define BEEPER                  PA8
 #define BEEPER_INVERTED
@@ -76,13 +76,13 @@
     #define USE_MAX7456
     #define MAX7456_SPI_INSTANCE    SPI2
     #define MAX7456_SPI_CS_PIN      PB12
-    #define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD*2)
+    #define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
     #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
-    
+
     #define ENABLE_BLACKBOX_LOGGING_ON_SPIFLASH_BY_DEFAULT
-	
-	#define DEFAULT_FEATURES		FEATURE_OSD
-	
+
+    #define DEFAULT_FEATURES        FEATURE_OSD
+
 #else
 
     #define BARO
@@ -111,7 +111,7 @@
     #define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG DMA_FLAG_TCIF4
     #define SDCARD_DMA_CLK                      RCC_AHB1Periph_DMA1
     #define SDCARD_DMA_CHANNEL                  DMA_Channel_0
-    
+
     #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
 #endif
@@ -144,7 +144,7 @@
 #define SERIAL_PORT_COUNT       6 //VCP, USART1, USART3, USART6, SOFTSERIAL x 2
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PC9  // (HARDARE=0,PPM)
 
 #define USE_SPI
 
@@ -179,8 +179,6 @@
 #define SERIALRX_UART           SERIAL_PORT_USART1
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define SPEKTRUM_BIND_PIN       UART3_RX_PIN
-
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define TARGET_IO_PORTA         0xffff
@@ -189,4 +187,4 @@
 #define TARGET_IO_PORTD         (BIT(2))
 
 #define USABLE_TIMER_CHANNEL_COUNT 6
-#define USED_TIMERS             ( TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(8) )
+#define USED_TIMERS             ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(5) | TIM_N(8) )

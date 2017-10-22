@@ -23,25 +23,26 @@
 
 #include "build/build_config.h"
 
-#include "common/maths.h"
+#include "common/crc.h"
+#include "common/utils.h"
 
 #include "config/config_eeprom.h"
 #include "config/config_streamer.h"
 #include "config/parameter_group.h"
+#include "fc/config.h"
 
 #include "drivers/system.h"
 
+#ifndef EEPROM_IN_RAM
 extern uint8_t __config_start;   // configured via linker script when building binaries.
 extern uint8_t __config_end;
+#endif
 
 static uint16_t eepromConfigSize;
 
 typedef enum {
     CR_CLASSICATION_SYSTEM   = 0,
-    CR_CLASSICATION_PROFILE1 = 1,
-    CR_CLASSICATION_PROFILE2 = 2,
-    CR_CLASSICATION_PROFILE3 = 3,
-    CR_CLASSICATION_PROFILE_LAST = CR_CLASSICATION_PROFILE3,
+    CR_CLASSICATION_PROFILE_LAST = CR_CLASSICATION_SYSTEM,
 } configRecordFlags_e;
 
 #define CR_CLASSIFICATION_MASK  (0x3)
@@ -52,7 +53,6 @@ typedef enum {
 typedef struct {
     uint8_t eepromConfigVersion;
     uint8_t magic_be;           // magic number, should be 0xBE
-    char boardIdentifier[sizeof(TARGET_BOARD_IDENTIFIER)];
 } PG_PACKED configHeader_t;
 
 // Header for each stored PG.
@@ -87,7 +87,6 @@ void initEEPROM(void)
     BUILD_BUG_ON(offsetof(packingTest_t, word) != 1);
     BUILD_BUG_ON(sizeof(packingTest_t) != 5);
 
-    BUILD_BUG_ON(sizeof(configHeader_t) != 2 + sizeof(TARGET_BOARD_IDENTIFIER));
     BUILD_BUG_ON(sizeof(configFooter_t) != 2);
     BUILD_BUG_ON(sizeof(configRecord_t) != 6);
 }
@@ -102,9 +101,6 @@ bool isEEPROMContentValid(void)
         return false;
     }
     if (header->magic_be != 0xBE) {
-        return false;
-    }
-    if (strncasecmp(header->boardIdentifier, TARGET_BOARD_IDENTIFIER, sizeof(TARGET_BOARD_IDENTIFIER))) {
         return false;
     }
 
@@ -178,23 +174,12 @@ static const configRecord_t *findEEPROM(const pgRegistry_t *reg, configRecordFla
 bool loadEEPROM(void)
 {
     PG_FOREACH(reg) {
-        configRecordFlags_e cls_start, cls_end;
-        if (pgIsSystem(reg)) {
-            cls_start = CR_CLASSICATION_SYSTEM;
-            cls_end = CR_CLASSICATION_SYSTEM;
+        const configRecord_t *rec = findEEPROM(reg, CR_CLASSICATION_SYSTEM);
+        if (rec) {
+            // config from EEPROM is available, use it to initialize PG. pgLoad will handle version mismatch
+            pgLoad(reg, rec->pg, rec->size - offsetof(configRecord_t, pg), rec->version);
         } else {
-            cls_start = CR_CLASSICATION_PROFILE1;
-            cls_end = CR_CLASSICATION_PROFILE_LAST;
-        }
-        for (configRecordFlags_e cls = cls_start; cls <= cls_end; cls++) {
-            int profileIndex = cls - cls_start;
-            const configRecord_t *rec = findEEPROM(reg, cls);
-            if (rec) {
-                // config from EEPROM is available, use it to initialize PG. pgLoad will handle version mismatch
-                pgLoad(reg, profileIndex, rec->pg, rec->size - offsetof(configRecord_t, pg), rec->version);
-            } else {
-                pgReset(reg, profileIndex);
-            }
+            pgReset(reg);
         }
     }
     return true;
@@ -210,7 +195,6 @@ static bool writeSettingsToEEPROM(void)
     configHeader_t header = {
         .eepromConfigVersion =  EEPROM_CONF_VERSION,
         .magic_be =             0xBE,
-        .boardIdentifier =      TARGET_BOARD_IDENTIFIER,
     };
 
     config_streamer_write(&streamer, (uint8_t *)&header, sizeof(header));
@@ -225,25 +209,11 @@ static bool writeSettingsToEEPROM(void)
             .flags = 0
         };
 
-        if (pgIsSystem(reg)) {
-            // write the only instance
-            record.flags |= CR_CLASSICATION_SYSTEM;
-            config_streamer_write(&streamer, (uint8_t *)&record, sizeof(record));
-            crc = crc16_ccitt_update(crc, (uint8_t *)&record, sizeof(record));
-            config_streamer_write(&streamer, reg->address, regSize);
-            crc = crc16_ccitt_update(crc, reg->address, regSize);
-        } else {
-            // write one instance for each profile
-            for (uint8_t profileIndex = 0; profileIndex < PG_PROFILE_COUNT; profileIndex++) {
-                record.flags = 0;
-                record.flags |= ((profileIndex + 1) & CR_CLASSIFICATION_MASK);
-                config_streamer_write(&streamer, (uint8_t *)&record, sizeof(record));
-                crc = crc16_ccitt_update(crc, (uint8_t *)&record, sizeof(record));
-                const uint8_t *address = reg->address + (regSize * profileIndex);
-                config_streamer_write(&streamer, address, regSize);
-                crc = crc16_ccitt_update(crc, address, regSize);
-            }
-        }
+        record.flags |= CR_CLASSICATION_SYSTEM;
+        config_streamer_write(&streamer, (uint8_t *)&record, sizeof(record));
+        crc = crc16_ccitt_update(crc, (uint8_t *)&record, sizeof(record));
+        config_streamer_write(&streamer, reg->address, regSize);
+        crc = crc16_ccitt_update(crc, reg->address, regSize);
     }
 
     configFooter_t footer = {

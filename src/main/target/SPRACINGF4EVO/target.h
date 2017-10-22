@@ -24,9 +24,9 @@
 #define SPRACINGF4EVO_REV 2
 #endif
 
-#define USBD_PRODUCT_STRING     "SP Racing F4 NEO"
+#define USBD_PRODUCT_STRING     "SP Racing F4 EVO"
 
-#define LED0                    PA0
+#define LED0_PIN                PA0
 
 #define BEEPER                  PC15
 #define BEEPER_INVERTED
@@ -84,9 +84,8 @@
 #define UART5_TX_PIN            PC12
 #define UART5_RX_PIN            PD2
 
-// TODO
-// #define USE_ESCSERIAL
-// #define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define USE_ESCSERIAL
+#define ESCSERIAL_TIMER_TX_PIN  PA3  // (HARDARE=0,PPM)
 
 #define USE_ESC_SENSOR
 
@@ -128,11 +127,10 @@
 #define RTC6705_SPI_INSTANCE    SPI3
 
 #define USE_SDCARD
-#define USE_SDCARD_SPI2
 
 #define SDCARD_DETECT_INVERTED
-
 #define SDCARD_DETECT_PIN                   PC14
+
 #define SDCARD_SPI_INSTANCE                 SPI2
 #define SDCARD_SPI_CS_PIN                   SPI2_NSS_PIN
 
@@ -177,8 +175,6 @@
 #define SERIALRX_UART           SERIAL_PORT_USART2
 #define TELEMETRY_UART          SERIAL_PORT_UART5
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
-
-#define SPEKTRUM_BIND_PIN       UART2_RX_PIN
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 

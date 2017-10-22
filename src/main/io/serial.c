@@ -38,8 +38,6 @@
 #include "drivers/serial_softserial.h"
 #endif
 
-#define USE_SERIAL (defined(USE_UART) || defined(USE_SOFTSERIAL1) || defined(USE_SOFTSERIAL2))
-
 #ifdef SITL
 #include "drivers/serial_tcp.h"
 #endif
@@ -121,15 +119,6 @@ void pgResetFn_serialConfig(serialConfig_t *serialConfig)
 
     serialConfig->portConfigs[0].functionMask = FUNCTION_MSP;
 
-#if defined(USE_VCP) && defined(USE_MSP_UART)
-    if (serialConfig->portConfigs[0].identifier == SERIAL_PORT_USB_VCP) {
-        serialPortConfig_t * uart1Config = serialFindPortConfiguration(SERIAL_PORT_USART1);
-        if (uart1Config) {
-            uart1Config->functionMask = FUNCTION_MSP;
-        }
-    }
-#endif
-
 #ifdef SERIALRX_UART
     serialPortConfig_t *serialRxUartConfig = serialFindPortConfiguration(SERIALRX_UART);
     if (serialRxUartConfig) {
@@ -148,6 +137,22 @@ void pgResetFn_serialConfig(serialConfig_t *serialConfig)
     serialPortConfig_t *serialGPSConfig = serialFindPortConfiguration(GPS_UART);
     if (serialGPSConfig) {
         serialGPSConfig->functionMask = FUNCTION_GPS;
+    }
+#endif
+
+#ifdef SBUS_TELEMETRY_UART
+    serialPortConfig_t *serialTlemetryUartConfig = serialFindPortConfiguration(SBUS_TELEMETRY_UART);
+    if (serialTlemetryUartConfig) {
+        serialTlemetryUartConfig->functionMask = FUNCTION_TELEMETRY_SMARTPORT;
+    }
+#endif
+
+#if defined(USE_VCP) && defined(USE_MSP_UART)
+    if (serialConfig->portConfigs[0].identifier == SERIAL_PORT_USB_VCP) {
+        serialPortConfig_t * uart1Config = serialFindPortConfiguration(SERIAL_PORT_USART1);
+        if (uart1Config) {
+            uart1Config->functionMask = FUNCTION_MSP;
+        }
     }
 #endif
 
@@ -268,8 +273,7 @@ serialPort_t *findNextSharedSerialPort(uint16_t functionMask, serialPortFunction
 }
 
 #ifdef TELEMETRY
-#define ALL_TELEMETRY_FUNCTIONS_MASK (TELEMETRY_SHAREABLE_PORT_FUNCTIONS_MASK | FUNCTION_TELEMETRY_HOTT | FUNCTION_TELEMETRY_SMARTPORT)
-#define ALL_FUNCTIONS_SHARABLE_WITH_MSP (FUNCTION_BLACKBOX | ALL_TELEMETRY_FUNCTIONS_MASK)
+#define ALL_FUNCTIONS_SHARABLE_WITH_MSP (FUNCTION_BLACKBOX | TELEMETRY_PORT_FUNCTIONS_MASK)
 #else
 #define ALL_FUNCTIONS_SHARABLE_WITH_MSP (FUNCTION_BLACKBOX)
 #endif
@@ -343,10 +347,10 @@ serialPort_t *openSerialPort(
     serialPortFunction_e function,
     serialReceiveCallbackPtr rxCallback,
     uint32_t baudRate,
-    portMode_t mode,
-    portOptions_t options)
+    portMode_e mode,
+    portOptions_e options)
 {
-#if !(USE_SERIAL)
+#if !(defined(USE_UART) || defined(USE_SOFTSERIAL1) || defined(USE_SOFTSERIAL2))
     UNUSED(rxCallback);
     UNUSED(baudRate);
     UNUSED(mode);
@@ -361,7 +365,7 @@ serialPort_t *openSerialPort(
 
     serialPort_t *serialPort = NULL;
 
-    switch(identifier) {
+    switch (identifier) {
 #ifdef USE_VCP
         case SERIAL_PORT_USB_VCP:
             serialPort = usbVcpOpen();
@@ -552,7 +556,7 @@ void serialPassthrough(serialPort_t *left, serialPort_t *right, serialConsumer *
     // Either port might be open in a mode other than MODE_RXTX. We rely on
     // serialRxBytesWaiting() to do the right thing for a TX only port. No
     // special handling is necessary OR performed.
-    while(1) {
+    while (1) {
         // TODO: maintain a timestamp of last data received. Use this to
         // implement a guard interval and check for `+++` as an escape sequence
         // to return to CLI command mode.

@@ -19,14 +19,14 @@
 
 #undef TELEMETRY_IBUS   //no space left
 #undef TELEMETRY_HOTT   //no space left
-#undef TELEMETRY_JETIEXBUS
-#undef USE_GYRO_DATA_ANALYSE
+#undef TELEMETRY_JETIEXBUS // no space left
+#undef TELEMETRY_MAVLINK   // no space left
 
 #define TARGET_BOARD_IDENTIFIER "OMNI" // https://en.wikipedia.org/wiki/Omnibus
 
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_NONE
 
-#define LED0                    PB3
+#define LED0_PIN                PB3
 
 #define BEEPER                  PC15
 #define BEEPER_INVERTED
@@ -87,7 +87,7 @@
 #define I2C_DEVICE              (I2CDEV_1)
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PB4  // (HARDARE=0,PPM)
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -106,7 +106,7 @@
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI1
 #define MAX7456_SPI_CS_PIN      PB1
-#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD*2)
+#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 //#define MAX7456_DMA_CHANNEL_TX            DMA1_Channel3
 //#define MAX7456_DMA_CHANNEL_RX            DMA1_Channel2
@@ -121,11 +121,10 @@
 #define SPI2_MOSI_PIN           PB15
 
 #define USE_SDCARD
-#define USE_SDCARD_SPI2
 
 #define SDCARD_DETECT_INVERTED
-
 #define SDCARD_DETECT_PIN                   PC14
+
 #define SDCARD_SPI_INSTANCE                 SPI2
 #define SDCARD_SPI_CS_PIN                   SPI2_NSS_PIN
 
@@ -168,10 +167,6 @@
 #define BUTTON_B_PIN            PB0
 
 //#define AVOID_UART3_FOR_PWM_PPM // Disable this for using UART3
-
-#define SPEKTRUM_BIND_PIN       UART3_RX_PIN
-
-#define BINDPLUG_PIN            PB0
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 

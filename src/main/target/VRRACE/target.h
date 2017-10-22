@@ -21,8 +21,8 @@
 
 #define USBD_PRODUCT_STRING "VRRACE"
 
-#define LED0 PD14
-#define LED1 PD15
+#define LED0_PIN PD14
+#define LED1_PIN PD15
 #define BEEPER PA0
 #define BEEPER_INVERTED
 
@@ -60,10 +60,6 @@
 
 /*
 #define SDCARD_DETECT_PIN                   PD2
-#define SDCARD_DETECT_EXTI_LINE             EXTI_Line2
-#define SDCARD_DETECT_EXTI_PIN_SOURCE       EXTI_PinSource2
-#define SDCARD_DETECT_EXTI_PORT_SOURCE      EXTI_PortSourceGPIOD
-#define SDCARD_DETECT_EXTI_IRQn             EXTI2_IRQn
 
 #define SDCARD_SPI_INSTANCE                 SPI3
 #define SDCARD_SPI_CS_PIN                   PB3
@@ -123,7 +119,7 @@
 #define SERIAL_PORT_COUNT 8 //VCP, USART1, USART2, USART3, USART6, SOFTSERIAL x 2
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PE9  // (HARDARE=0,PPM)
 
 
 #define USE_SPI
@@ -164,10 +160,6 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
 //#define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
-
-/*
-#define SPEKTRUM_BIND_PIN             PB11
-*/
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 

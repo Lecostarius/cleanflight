@@ -19,7 +19,7 @@
 
 #define TARGET_BOARD_IDENTIFIER "SIRF"
 
-#define LED0                    PB2
+#define LED0_PIN                PB2
 #define BEEPER                  PA1
 
 
@@ -62,7 +62,7 @@
 #define SERIAL_PORT_COUNT       6
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PB11  // (HARDARE=0,PPM)
 
 #define UART1_TX_PIN            PA9
 #define UART1_RX_PIN            PA10
@@ -116,7 +116,6 @@
 #define RTC6705_SPICLK_PIN      PC13
 
 #define USE_SDCARD
-#define USE_SDCARD_SPI2
 
 #define SDCARD_SPI_INSTANCE                 SPI2
 #define SDCARD_SPI_CS_GPIO                  SPI2_GPIO
@@ -148,8 +147,6 @@
 
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_DEFAULT
 
-#define SPEKTRUM_BIND_PIN       UART3_RX_PIN
-
 #define DEFAULT_RX_FEATURE      FEATURE_RX_PPM
 #define DEFAULT_FEATURES        (FEATURE_RX_SERIAL | FEATURE_OSD)
 
@@ -163,4 +160,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 7
 #define USED_TIMERS             (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(8) | TIM_N(17))
-

@@ -26,8 +26,8 @@
 
 #define TARGET_XTAL_MHZ         16
 
-#define LED0                    PC14
-#define LED1                    PC13
+#define LED0_PIN                PC14
+#define LED1_PIN                PC13
 
 #define BEEPER                  PC5
 
@@ -97,7 +97,7 @@
 #define SERIAL_PORT_COUNT       6 //VCP, UART1, UART2, UART3, SOFTSERIAL x 2
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PA10  // (HARDARE=0,PPM)
 
 #define USE_SPI
 

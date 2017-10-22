@@ -43,8 +43,6 @@
 #include "io/gps.h"
 #include "io/serial.h"
 
-#include "msp/msp.h"
-
 #include "sensors/boardalignment.h"
 #include "sensors/sensors.h"
 #include "sensors/battery.h"
@@ -54,10 +52,10 @@
 #include "sensors/gyro.h"
 
 #include "rx/rx.h"
-#include "rx/msp.h"
 
 #include "telemetry/telemetry.h"
 #include "telemetry/smartport.h"
+#include "telemetry/msp_shared.h"
 
 enum
 {
@@ -164,7 +162,6 @@ typedef struct smartPortFrame_s {
 } __attribute__((packed)) smartPortFrame_t;
 
 #define SMARTPORT_FRAME_SIZE  sizeof(smartPortFrame_t)
-#define SMARTPORT_TX_BUF_SIZE 256
 
 #define SMARTPORT_PAYLOAD_OFFSET offsetof(smartPortFrame_t, valueId)
 #define SMARTPORT_PAYLOAD_SIZE   (SMARTPORT_FRAME_SIZE - SMARTPORT_PAYLOAD_OFFSET - 1)
@@ -172,29 +169,9 @@ typedef struct smartPortFrame_s {
 static smartPortFrame_t smartPortRxBuffer;
 static uint8_t smartPortRxBytes = 0;
 static bool smartPortFrameReceived = false;
-
-#define SMARTPORT_MSP_VERSION    1
-#define SMARTPORT_MSP_VER_SHIFT  5
-#define SMARTPORT_MSP_VER_MASK   (0x7 << SMARTPORT_MSP_VER_SHIFT)
-#define SMARTPORT_MSP_VERSION_S  (SMARTPORT_MSP_VERSION << SMARTPORT_MSP_VER_SHIFT)
-
-#define SMARTPORT_MSP_ERROR_FLAG (1 << 5)
-#define SMARTPORT_MSP_START_FLAG (1 << 4)
-#define SMARTPORT_MSP_SEQ_MASK   0x0F
-
-#define SMARTPORT_MSP_RX_BUF_SIZE 64
-
-static uint8_t smartPortMspTxBuffer[SMARTPORT_TX_BUF_SIZE];
-static mspPacket_t smartPortMspReply;
+#if defined(USE_MSP_OVER_TELEMETRY)
 static bool smartPortMspReplyPending = false;
-
-#define SMARTPORT_MSP_RES_ERROR (-10)
-
-enum {
-    SMARTPORT_MSP_VER_MISMATCH=0,
-    SMARTPORT_MSP_CRC_ERROR=1,
-    SMARTPORT_MSP_ERROR=2
-};
+#endif
 
 static void smartPortDataReceive(uint16_t c)
 {
@@ -242,7 +219,7 @@ static void smartPortDataReceive(uint16_t c)
 
         rxBuffer[smartPortRxBytes++] = c;
 
-        if(smartPortRxBytes == SMARTPORT_FRAME_SIZE) {
+        if (smartPortRxBytes == SMARTPORT_FRAME_SIZE) {
             if (c == (0xFF - checksum)) {
                 smartPortFrameReceived = true;
             }
@@ -280,7 +257,7 @@ static void smartPortSendPackageEx(uint8_t frameId, uint8_t* data)
 {
     uint16_t crc = 0;
     smartPortSendByte(frameId, &crc);
-    for(unsigned i = 0; i < SMARTPORT_PAYLOAD_SIZE; i++) {
+    for (unsigned i = 0; i < SMARTPORT_PAYLOAD_SIZE; i++) {
         smartPortSendByte(*data++, &crc);
     }
     smartPortSendByte(0xFF - (uint8_t)crc, NULL);
@@ -321,7 +298,7 @@ void configureSmartPortTelemetryPort(void)
         return;
     }
 
-    portOptions_t portOptions = (telemetryConfig()->halfDuplex ? SERIAL_BIDIR : SERIAL_UNIDIR) | (telemetryConfig()->telemetry_inverted ? SERIAL_NOT_INVERTED : SERIAL_INVERTED);
+    portOptions_e portOptions = (telemetryConfig()->halfDuplex ? SERIAL_BIDIR : SERIAL_UNIDIR) | (telemetryConfig()->telemetry_inverted ? SERIAL_NOT_INVERTED : SERIAL_INVERTED);
 
     smartPortSerialPort = openSerialPort(portConfig->identifier, FUNCTION_TELEMETRY_SMARTPORT, NULL, SMARTPORT_BAUD, SMARTPORT_UART_MODE, portOptions);
 
@@ -352,195 +329,11 @@ void checkSmartPortTelemetryState(void)
         freeSmartPortTelemetryPort();
 }
 
-static void initSmartPortMspReply(int16_t cmd)
-{
-    smartPortMspReply.buf.ptr    = smartPortMspTxBuffer;
-    smartPortMspReply.buf.end    = ARRAYEND(smartPortMspTxBuffer);
-
-    smartPortMspReply.cmd    = cmd;
-    smartPortMspReply.result = 0;
+#if defined(USE_MSP_OVER_TELEMETRY)
+void smartPortSendMspResponse(uint8_t *payload) {
+    smartPortSendPackageEx(FSSP_MSPS_FRAME, payload);
 }
-
-static void processMspPacket(mspPacket_t* packet)
-{
-    initSmartPortMspReply(0);
-
-    if (mspFcProcessCommand(packet, &smartPortMspReply, NULL) == MSP_RESULT_ERROR) {
-        sbufWriteU8(&smartPortMspReply.buf, SMARTPORT_MSP_ERROR);
-    }
-
-    // change streambuf direction
-    sbufSwitchToReader(&smartPortMspReply.buf, smartPortMspTxBuffer);
-    smartPortMspReplyPending = true;
-}
-
-/**
- * Request frame format:
- * - Header: 1 byte
- *   - Reserved: 2 bits (future use)
- *   - Error-flag: 1 bit
- *   - Start-flag: 1 bit
- *   - CSeq: 4 bits
- *
- * - MSP payload:
- *   - if Error-flag == 0:
- *     - size: 1 byte
- *     - payload
- *     - CRC (request type included)
- *   - if Error-flag == 1:
- *     - size: 1 byte (== 1)
- *     - error: 1 Byte
- *       - 0: Version mismatch (type=0)
- *       - 1: Sequence number error
- *       - 2: MSP error
- *     - CRC (request type included)
- */
-bool smartPortSendMspReply()
-{
-    static uint8_t checksum = 0;
-    static uint8_t seq = 0;
-
-    uint8_t packet[SMARTPORT_PAYLOAD_SIZE];
-    uint8_t* p = packet;
-    uint8_t* end = p + SMARTPORT_PAYLOAD_SIZE;
-
-    sbuf_t* txBuf = &smartPortMspReply.buf;
-
-    // detect first reply packet
-    if (txBuf->ptr == smartPortMspTxBuffer) {
-
-        // header
-        uint8_t head = SMARTPORT_MSP_START_FLAG | (seq++ & SMARTPORT_MSP_SEQ_MASK);
-        if (smartPortMspReply.result < 0) {
-            head |= SMARTPORT_MSP_ERROR_FLAG;
-        }
-        *p++ = head;
-
-        uint8_t size = sbufBytesRemaining(txBuf);
-        *p++ = size;
-
-        checksum = size ^ smartPortMspReply.cmd;
-    }
-    else {
-        // header
-        *p++ = (seq++ & SMARTPORT_MSP_SEQ_MASK);
-    }
-
-    while ((p < end) && (sbufBytesRemaining(txBuf) > 0)) {
-        *p = sbufReadU8(txBuf);
-        checksum ^= *p++; // MSP checksum
-    }
-
-    // to be continued...
-    if (p == end) {
-        smartPortSendPackageEx(FSSP_MSPS_FRAME,packet);
-        return true;
-    }
-
-    // nothing left in txBuf,
-    // append the MSP checksum
-    *p++ = checksum;
-
-    // pad with zeros
-    while (p < end)
-        *p++ = 0;
-
-    smartPortSendPackageEx(FSSP_MSPS_FRAME,packet);
-    return false;
-}
-
-void smartPortSendErrorReply(uint8_t error, int16_t cmd)
-{
-    initSmartPortMspReply(cmd);
-    sbufWriteU8(&smartPortMspReply.buf,error);
-    smartPortMspReply.result = SMARTPORT_MSP_RES_ERROR;
-
-    sbufSwitchToReader(&smartPortMspReply.buf, smartPortMspTxBuffer);
-    smartPortMspReplyPending = true;
-}
-
-/**
- * Request frame format:
- * - Header: 1 byte
- *   - Version: 3 bits
- *   - Start-flag: 1 bit
- *   - CSeq: 4 bits
- *
- * - MSP payload:
- *   - Size: 1 Byte
- *   - Type: 1 Byte
- *   - payload...
- *   - CRC
- */
-void handleSmartPortMspFrame(smartPortFrame_t* sp_frame)
-{
-    static uint8_t mspBuffer[SMARTPORT_MSP_RX_BUF_SIZE];
-    static uint8_t mspStarted = 0;
-    static uint8_t lastSeq = 0;
-    static uint8_t checksum = 0;
-    static mspPacket_t cmd;
-
-    // re-assemble MSP frame & forward to MSP port when complete
-    uint8_t* p = ((uint8_t*)sp_frame) + SMARTPORT_PAYLOAD_OFFSET;
-    uint8_t* end = p + SMARTPORT_PAYLOAD_SIZE;
-
-    uint8_t head = *p++;
-    uint8_t seq = head & SMARTPORT_MSP_SEQ_MASK;
-    uint8_t version = (head & SMARTPORT_MSP_VER_MASK) >> SMARTPORT_MSP_VER_SHIFT;
-
-    if (version != SMARTPORT_MSP_VERSION) {
-        mspStarted = 0;
-        smartPortSendErrorReply(SMARTPORT_MSP_VER_MISMATCH,0);
-        return;
-    }
-
-    // check start-flag
-    if (head & SMARTPORT_MSP_START_FLAG) {
-
-        //TODO: if (p_size > SMARTPORT_MSP_RX_BUF_SIZE) error!
-        uint8_t p_size = *p++;
-        cmd.cmd = *p++;
-        cmd.result = 0;
-
-        cmd.buf.ptr = mspBuffer;
-        cmd.buf.end = mspBuffer + p_size;
-
-        checksum = p_size ^ cmd.cmd;
-        mspStarted = 1;
-    } else if (!mspStarted) {
-        // no start packet yet, throw this one away
-        return;
-    } else if (((lastSeq + 1) & SMARTPORT_MSP_SEQ_MASK) != seq) {
-        // packet loss detected!
-        mspStarted = 0;
-        return;
-    }
-
-    // copy payload bytes
-    while ((p < end) && sbufBytesRemaining(&cmd.buf)) {
-        checksum ^= *p;
-        sbufWriteU8(&cmd.buf,*p++);
-    }
-
-    // reached end of smart port frame
-    if (p == end) {
-        lastSeq = seq;
-        return;
-    }
-
-    // last byte must be the checksum
-    if (checksum != *p) {
-        mspStarted = 0;
-        smartPortSendErrorReply(SMARTPORT_MSP_CRC_ERROR,cmd.cmd);
-        return;
-    }
-
-    // end of MSP packet reached
-    mspStarted = 0;
-    sbufSwitchToReader(&cmd.buf,mspBuffer);
-
-    processMspPacket(&cmd);
-}
+#endif
 
 void handleSmartPortTelemetry(void)
 {
@@ -559,15 +352,18 @@ void handleSmartPortTelemetry(void)
         smartPortDataReceive(c);
     }
 
-    if(smartPortFrameReceived) {
+    if (smartPortFrameReceived) {
         smartPortFrameReceived = false;
         // do not check the physical ID here again
         // unless we start receiving other sensors' packets
-        if(smartPortRxBuffer.frameId == FSSP_MSPC_FRAME) {
 
+#if defined(USE_MSP_OVER_TELEMETRY)
+        if (smartPortRxBuffer.frameId == FSSP_MSPC_FRAME) {
             // Pass only the payload: skip sensorId & frameId
-            handleSmartPortMspFrame(&smartPortRxBuffer);
+            uint8_t *frameStart = (uint8_t *)&smartPortRxBuffer + SMARTPORT_PAYLOAD_OFFSET;
+            smartPortMspReplyPending = handleMspFrame(frameStart, SMARTPORT_PAYLOAD_SIZE);
         }
+#endif
     }
 
     while (smartPortHasRequest) {
@@ -577,11 +373,13 @@ void handleSmartPortTelemetry(void)
             return;
         }
 
-        if(smartPortMspReplyPending) {
-            smartPortMspReplyPending = smartPortSendMspReply();
+#if defined(USE_MSP_OVER_TELEMETRY)
+        if (smartPortMspReplyPending) {
+            smartPortMspReplyPending = sendMspReply(SMARTPORT_PAYLOAD_SIZE, &smartPortSendMspResponse);
             smartPortHasRequest = 0;
             return;
         }
+#endif
 
         // we can send back any data we want, our table keeps track of the order and frequency of each data type we send
         uint16_t id = frSkyDataIdTable[smartPortIdCnt];
@@ -596,13 +394,13 @@ void handleSmartPortTelemetry(void)
         static uint8_t t1Cnt = 0;
         static uint8_t t2Cnt = 0;
 
-        switch(id) {
+        switch (id) {
 #ifdef GPS
             case FSSP_DATAID_SPEED      :
                 if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
                     //convert to knots: 1cm/s = 0.0194384449 knots
                     //Speed should be sent in knots/1000 (GPS speed is in cm/s)
-                    uint32_t tmpui = GPS_speed * 1944 / 100;
+                    uint32_t tmpui = gpsSol.groundSpeed * 1944 / 100;
                     smartPortSendPackage(id, tmpui);
                     smartPortHasRequest = 0;
                 }
@@ -649,14 +447,14 @@ void handleSmartPortTelemetry(void)
                     // the MSB of the sent uint32_t helps FrSky keep track
                     // the even/odd bit of our counter helps us keep track
                     if (smartPortIdCnt & 1) {
-                        tmpui = abs(GPS_coord[LON]);  // now we have unsigned value and one bit to spare
+                        tmpui = abs(gpsSol.llh.lon);  // now we have unsigned value and one bit to spare
                         tmpui = (tmpui + tmpui / 2) / 25 | 0x80000000;  // 6/100 = 1.5/25, division by power of 2 is fast
-                        if (GPS_coord[LON] < 0) tmpui |= 0x40000000;
+                        if (gpsSol.llh.lon < 0) tmpui |= 0x40000000;
                     }
                     else {
-                        tmpui = abs(GPS_coord[LAT]);  // now we have unsigned value and one bit to spare
+                        tmpui = abs(gpsSol.llh.lat);  // now we have unsigned value and one bit to spare
                         tmpui = (tmpui + tmpui / 2) / 25;  // 6/100 = 1.5/25, division by power of 2 is fast
-                        if (GPS_coord[LAT] < 0) tmpui |= 0x40000000;
+                        if (gpsSol.llh.lat < 0) tmpui |= 0x40000000;
                     }
                     smartPortSendPackage(id, tmpui);
                     smartPortHasRequest = 0;
@@ -698,10 +496,11 @@ void handleSmartPortTelemetry(void)
                 // the Taranis seems to be able to fit 5 digits on the screen
                 // the Taranis seems to consider this number a signed 16 bit integer
 
-                if (ARMING_FLAG(OK_TO_ARM))
+                if (!isArmingDisabled()) {
                     tmpi += 1;
-                if (ARMING_FLAG(PREVENT_ARMING))
+                } else {
                     tmpi += 2;
+                }
                 if (ARMING_FLAG(ARMED))
                     tmpi += 4;
 
@@ -735,13 +534,13 @@ void handleSmartPortTelemetry(void)
                 if (sensors(SENSOR_GPS)) {
 #ifdef GPS
                     // provide GPS lock status
-                    smartPortSendPackage(id, (STATE(GPS_FIX) ? 1000 : 0) + (STATE(GPS_FIX_HOME) ? 2000 : 0) + GPS_numSat);
+                    smartPortSendPackage(id, (STATE(GPS_FIX) ? 1000 : 0) + (STATE(GPS_FIX_HOME) ? 2000 : 0) + gpsSol.numSat);
                     smartPortHasRequest = 0;
 #endif
                 } else if (feature(FEATURE_GPS)) {
                     smartPortSendPackage(id, 0);
                     smartPortHasRequest = 0;
-                } else if (telemetryConfig()->pidValuesAsTelemetry){
+                } else if (telemetryConfig()->pidValuesAsTelemetry) {
                     switch (t2Cnt) {
                         case 0:
                             tmp2 = currentPidProfile->pid[PID_ROLL].P;
@@ -776,7 +575,7 @@ void handleSmartPortTelemetry(void)
 #ifdef GPS
             case FSSP_DATAID_GPS_ALT    :
                 if (sensors(SENSOR_GPS) && STATE(GPS_FIX)) {
-                    smartPortSendPackage(id, GPS_altitude * 100); // given in 0.1m , requested in 10 = 1m (should be in mm, probably a bug in opentx, tested on 2.0.1.7)
+                    smartPortSendPackage(id, gpsSol.llh.alt * 100); // given in 0.1m , requested in 10 = 1m (should be in mm, probably a bug in opentx, tested on 2.0.1.7)
                     smartPortHasRequest = 0;
                 }
                 break;

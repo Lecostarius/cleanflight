@@ -83,16 +83,9 @@ static bool fakeGyroReadTemperature(gyroDev_t *gyro, int16_t *temperatureData)
     return true;
 }
 
-static bool fakeGyroInitStatus(gyroDev_t *gyro)
-{
-    UNUSED(gyro);
-    return true;
-}
-
 bool fakeGyroDetect(gyroDev_t *gyro)
 {
     gyro->initFn = fakeGyroInit;
-    gyro->intStatusFn = fakeGyroInitStatus;
     gyro->readFn = fakeGyroRead;
     gyro->temperatureFn = fakeGyroReadTemperature;
 #if defined(SIMULATOR_BUILD)
@@ -158,4 +151,3 @@ bool fakeAccDetect(accDev_t *acc)
     return true;
 }
 #endif // USE_FAKE_ACC
-

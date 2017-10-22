@@ -18,12 +18,12 @@
 #pragma once
 
 #define TARGET_BOARD_IDENTIFIER "MKF4"
-//#define CONFIG_START_FLASH_ADDRESS (0x08080000) 
+//#define CONFIG_START_FLASH_ADDRESS (0x08080000)
 
 #define USBD_PRODUCT_STRING  "MatekF4"
 
-#define LED0                    PB9
-#define LED1                    PA14
+#define LED0_PIN                PB9
+#define LED1_PIN                PA14
 
 #define BEEPER                  PC13
 #define BEEPER_INVERTED
@@ -33,8 +33,8 @@
 #define USE_SPI_DEVICE_1
 
 #define SPI1_SCK_PIN            PA5
-#define SPI1_MISO_PIN   	    PA6
-#define SPI1_MOSI_PIN   	    PA7
+#define SPI1_MISO_PIN           PA6
+#define SPI1_MOSI_PIN           PA7
 
 #define MPU6500_CS_PIN          PC2
 #define MPU6500_SPI_INSTANCE    SPI1
@@ -51,14 +51,37 @@
 #define USE_ACC_SPI_MPU6500
 #define ACC_MPU6500_ALIGN       CW180_DEG
 
+// *************** Baro **************************
+#define USE_I2C
+
+#if defined(BARO_I2C1)
+// Useful for MATEKF405_OSD, since it does not have the SCL / SDA pads
+#define USE_I2C_DEVICE_3
+#define I2C_DEVICE              (I2CDEV_3)
+#define I2C3_SCL                PC9        // S4 pad
+#define I2C3_SDA                PA8        // S6 pad
+#define BARO_I2C_INSTANCE       (I2CDEV_3)
+#else
+#define USE_I2C_DEVICE_1
+#define I2C_DEVICE              (I2CDEV_1)
+#define I2C1_SCL                PB6        // SCL pad
+#define I2C1_SDA                PB7        // SDA pad
+#define BARO_I2C_INSTANCE       (I2CDEV_1)
+#endif
+
+#define BARO
+#define USE_BARO_BMP280
+#define USE_BARO_MS5611
+#define USE_BARO_BMP085
+
 // *************** SD Card **************************
 #define USE_SDCARD
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
 #define USE_SPI_DEVICE_3
 #define SPI3_SCK_PIN            PB3
-#define SPI3_MISO_PIN   	    PB4
-#define SPI3_MOSI_PIN   	    PB5
+#define SPI3_MISO_PIN           PB4
+#define SPI3_MOSI_PIN           PB5
 
 #define SDCARD_SPI_INSTANCE     SPI3
 #define SDCARD_SPI_CS_PIN       PC1
@@ -68,16 +91,16 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
-#define SDCARD_DMA_CHANNEL_TX               	DMA1_Stream7
-#define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG 	DMA_FLAG_TCIF7
-#define SDCARD_DMA_CLK                      	RCC_AHB1Periph_DMA1
-#define SDCARD_DMA_CHANNEL                  	DMA_Channel_0
+#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream7
+#define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG DMA_FLAG_TCIF7
+#define SDCARD_DMA_CLK                      RCC_AHB1Periph_DMA1
+#define SDCARD_DMA_CHANNEL                  DMA_Channel_0
 
 // *************** OSD *****************************
 #define USE_SPI_DEVICE_2
 #define SPI2_SCK_PIN            PB13
-#define SPI2_MISO_PIN   	    PB14
-#define SPI2_MOSI_PIN   	    PB15
+#define SPI2_MISO_PIN           PB14
+#define SPI2_MOSI_PIN           PB15
 
 #define OSD
 #define USE_MAX7456
@@ -112,7 +135,7 @@
 //#define SOFTSERIAL1_RX_PIN      PA15 // S5
 //#define SOFTSERIAL1_TX_PIN      PA8  // S6
 
-#define SERIAL_PORT_COUNT       7 
+#define SERIAL_PORT_COUNT       7
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
@@ -129,10 +152,8 @@
 
 #define LED_STRIP
 
-#define SPEKTRUM_BIND
-#define BIND_PIN                PA1 // USART4 RX
-
-//#define USE_ESCSERIAL
+#define USE_ESCSERIAL
+#define ESCSERIAL_TIMER_TX_PIN PA3
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define TARGET_IO_PORTA         0xffff

@@ -57,7 +57,7 @@ void targetConfiguration(void)
 {
     /* depending on revision ... depends on the LEDs to be utilised. */
     if (hardwareRevision == AFF3_REV_2) {
-        statusLedConfigMutable()->polarity = 0
+        statusLedConfigMutable()->inversion = 0
 #ifdef LED0_A_INVERTED
             | BIT(0)
 #endif
@@ -69,17 +69,17 @@ void targetConfiguration(void)
 #endif
             ;
 
-        for (int i = 0; i < LED_NUMBER; i++) {
-            statusLedConfigMutable()->ledTags[i] = IO_TAG_NONE;
+        for (int i = 0; i < STATUS_LED_NUMBER; i++) {
+            statusLedConfigMutable()->ioTags[i] = IO_TAG_NONE;
         }
 #ifdef LED0_A
-        statusLedConfigMutable()->ledTags[0] = IO_TAG(LED0_A);
+        statusLedConfigMutable()->ioTags[0] = IO_TAG(LED0_A);
 #endif
 #ifdef LED1_A
-        statusLedConfigMutable()->ledTags[1] = IO_TAG(LED1_A);
+        statusLedConfigMutable()->ioTags[1] = IO_TAG(LED1_A);
 #endif
 #ifdef LED2_A
-        statusLedConfigMutable()->ledTags[2] = IO_TAG(LED2_A);
+        statusLedConfigMutable()->ioTags[2] = IO_TAG(LED2_A);
 #endif
     } else {
         gyroConfigMutable()->gyro_sync_denom = 2;
@@ -90,13 +90,16 @@ void targetConfiguration(void)
         rxConfigMutable()->serialrx_provider = SERIALRX_SPEKTRUM2048;
         rxConfigMutable()->spektrum_sat_bind = 5;
         rxConfigMutable()->spektrum_sat_bind_autoreset = 1;
-        voltageSensorADCConfigMutable(VOLTAGE_SENSOR_ADC_VBAT)->vbatscale = VBAT_SCALE;
+        parseRcChannels("TAER1234", rxConfigMutable());
     } else {
         rxConfigMutable()->serialrx_provider = SERIALRX_SBUS;
-        rxConfigMutable()->sbus_inversion = 0;
+        rxConfigMutable()->serialrx_inverted = true;
         serialConfigMutable()->portConfigs[findSerialPortIndexByIdentifier(SERIALRX_UART)].functionMask = FUNCTION_TELEMETRY_FRSKY | FUNCTION_RX_SERIAL;
-        telemetryConfigMutable()->telemetry_inverted = true;
+        telemetryConfigMutable()->telemetry_inverted = false;
         featureSet(FEATURE_TELEMETRY);
+        beeperDevConfigMutable()->isOpenDrain = false;
+        beeperDevConfigMutable()->isInverted = true;
+        parseRcChannels("AETR1234", rxConfigMutable());
     }
 
     if (hardwareMotorType == MOTOR_BRUSHED) {
@@ -104,12 +107,16 @@ void targetConfiguration(void)
         pidConfigMutable()->pid_process_denom = 1;
     }
 
-    pidProfilesMutable(0)->pid[PID_ROLL].P = 90;
-    pidProfilesMutable(0)->pid[PID_ROLL].I = 44;
-    pidProfilesMutable(0)->pid[PID_ROLL].D = 60;
-    pidProfilesMutable(0)->pid[PID_PITCH].P = 90;
-    pidProfilesMutable(0)->pid[PID_PITCH].I = 44;
-    pidProfilesMutable(0)->pid[PID_PITCH].D = 60;
+    for (uint8_t pidProfileIndex = 0; pidProfileIndex < MAX_PROFILE_COUNT; pidProfileIndex++) {
+        pidProfile_t *pidProfile = pidProfilesMutable(pidProfileIndex);
+
+        pidProfile->pid[PID_ROLL].P = 90;
+        pidProfile->pid[PID_ROLL].I = 44;
+        pidProfile->pid[PID_ROLL].D = 60;
+        pidProfile->pid[PID_PITCH].P = 90;
+        pidProfile->pid[PID_PITCH].I = 44;
+        pidProfile->pid[PID_PITCH].D = 60;
+    }
 
     *customMotorMixerMutable(0) = (motorMixer_t){ 1.0f, -0.414178f,  1.0f, -1.0f };    // REAR_R
     *customMotorMixerMutable(1) = (motorMixer_t){ 1.0f, -0.414178f, -1.0f,  1.0f };    // FRONT_R

@@ -55,7 +55,7 @@ static struct {
 
 #endif // USE_SDCARD
 
-void blackboxOpen()
+void blackboxOpen(void)
 {
     serialPort_t *sharedBlackboxAndMspPort = findSharedSerialPort(FUNCTION_BLACKBOX, FUNCTION_MSP);
     if (sharedBlackboxAndMspPort) {
@@ -84,7 +84,7 @@ void blackboxWrite(uint8_t value)
 }
 
 // Print the null-terminated string 's' to the blackbox device and return the number of bytes written
-int blackboxPrint(const char *s)
+int blackboxWriteString(const char *s)
 {
     int length;
     const uint8_t *pos;
@@ -183,7 +183,7 @@ bool blackboxDeviceOpen(void)
         {
             serialPortConfig_t *portConfig = findSerialPortConfig(FUNCTION_BLACKBOX);
             baudRate_e baudRateIndex;
-            portOptions_t portOptions = SERIAL_PARITY_NO | SERIAL_NOT_INVERTED;
+            portOptions_e portOptions = SERIAL_PARITY_NO | SERIAL_NOT_INVERTED;
 
             if (!portConfig) {
                 return false;
@@ -221,7 +221,7 @@ bool blackboxDeviceOpen(void)
              */
 
 
-            switch(baudRateIndex) {
+            switch (baudRateIndex) {
             case BAUD_1000000:
             case BAUD_1500000:
             case BAUD_2000000:
@@ -351,7 +351,7 @@ static void blackboxLogFileCreated(afatfsFilePtr_t file)
     }
 }
 
-static void blackboxCreateLogFile()
+static void blackboxCreateLogFile(void)
 {
     uint32_t remainder = blackboxSDCard.largestLogFileNumber + 1;
 
@@ -372,7 +372,7 @@ static void blackboxCreateLogFile()
  *
  * Keep calling until the function returns true (open is complete).
  */
-static bool blackboxSDCardBeginLog()
+static bool blackboxSDCardBeginLog(void)
 {
     fatDirectoryEntry_t *directoryEntry;
 
@@ -511,11 +511,19 @@ bool isBlackboxDeviceFull(void)
     }
 }
 
+unsigned int blackboxGetLogNumber(void)
+{
+#ifdef USE_SDCARD
+    return blackboxSDCard.largestLogFileNumber;
+#endif
+    return 0;
+}
+
 /**
  * Call once every loop iteration in order to maintain the global blackboxHeaderBudget with the number of bytes we can
  * transmit this iteration.
  */
-void blackboxReplenishHeaderBudget()
+void blackboxReplenishHeaderBudget(void)
 {
     int32_t freeSpace;
 

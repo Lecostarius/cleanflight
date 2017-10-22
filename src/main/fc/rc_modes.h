@@ -51,17 +51,21 @@ typedef enum {
     BOXBLACKBOX,
     BOXFAILSAFE,
     BOXAIRMODE,
-    BOX3DDISABLESWITCH,
+    BOX3DDISABLE,
     BOXFPVANGLEMIX,
     BOXBLACKBOXERASE,
     BOXCAMERA1,
     BOXCAMERA2,
     BOXCAMERA3,
+    BOXFLIPOVERAFTERCRASH,
+    BOXPREARM,
+    BOXBEEPGPSCOUNT,
+    BOX3DONASWITCH,
     CHECKBOX_ITEM_COUNT
 } boxId_e;
 
 // type to hold enough bits for CHECKBOX_ITEM_COUNT. Struct used for value-like behavior
-typedef struct { uint32_t bits[(CHECKBOX_ITEM_COUNT + 31) / 32]; } boxBitmask_t;
+typedef struct boxBitmask_s { uint32_t bits[(CHECKBOX_ITEM_COUNT + 31) / 32]; } boxBitmask_t;
 
 #define MAX_MODE_ACTIVATION_CONDITION_COUNT 20
 

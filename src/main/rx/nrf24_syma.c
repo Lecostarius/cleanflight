@@ -28,6 +28,7 @@
 
 #include "build/build_config.h"
 
+#include "drivers/io.h"
 #include "drivers/rx_nrf24l01.h"
 #include "drivers/time.h"
 
@@ -299,4 +300,3 @@ void symaNrf24Init(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfi
     symaNrf24Setup((rx_spi_protocol_e)rxConfig->rx_spi_protocol);
 }
 #endif
-

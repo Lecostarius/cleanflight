@@ -21,8 +21,8 @@
 
 #define USBD_PRODUCT_STRING  "FishDroneF4"
 
-#define LED0                    PC13
-#define LED1                    PC14
+#define LED0_PIN                PC13
+#define LED1_PIN                PC14
 
 #define BEEPER                  PC15
 #define BEEPER_INVERTED
@@ -71,7 +71,7 @@
 #define SERIAL_PORT_COUNT       6 // VCP, USART1, USART3, USART6, SOFTSERIAL x 2
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PB0  // (HARDARE=0,PPM)
 
 // *************** OSD *****************************
 #define USE_SPI_DEVICE_2

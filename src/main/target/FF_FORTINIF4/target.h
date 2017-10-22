@@ -18,15 +18,22 @@
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "FORT"
 #define USBD_PRODUCT_STRING     "FortiniF4"
+#define TARGET_CONFIG
+#define USE_HARDWARE_REVISION_DETECTION
+#define HW_PIN                  PC14
 /*--------------LED----------------*/
-#define LED0                    PB5
-#define LED1                    PB6
+#define LED0_PIN                PB5
+#define LED1_PIN                PB6
 #define LED_STRIP
 /*---------------------------------*/
 
 /*------------BEEPER---------------*/
 #define BEEPER                  PB4
 #define BEEPER_INVERTED
+/*---------------------------------*/
+
+/*----------CAMERA CONTROL---------*/
+#define CAMERA_CONTROL_PIN      PB7
 /*---------------------------------*/
 
 /*------------SENSORS--------------*/
@@ -79,6 +86,15 @@
 #define USE_FLASH_M25P16
 /*---------------------------------*/
 
+/*-------------OSD-----------------*/
+#define OSD
+#define USE_MAX7456
+#define MAX7456_SPI_INSTANCE    SPI3
+#define MAX7456_SPI_CS_PIN      PB3
+#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
+#define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
+/*---------------------------------*/
+
 /*-----------USB-UARTs-------------*/
 #define USE_VCP
 //#define VBUS_SENSING_PIN PA8
@@ -103,8 +119,6 @@
 
 #define SERIAL_PORT_COUNT       5
 //SPECKTRUM BIND
-#define SPEKTRUM_BIND_PIN       UART3_RX_PIN
-
 #define CMS
 #define USE_MSP_DISPLAYPORT
 /*---------------------------------*/
@@ -137,7 +151,7 @@
 #define USE_ESC_SENSOR
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PB0  // (HARDARE=0)
 /*---------------------------------*/
 
 /*--------DEFAULT VALUES-----------*/

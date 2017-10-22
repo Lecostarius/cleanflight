@@ -24,9 +24,9 @@
 
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 
-#define LED0                    PB6
-#define LED1                    PB5
-#define LED2                    PB4
+#define LED0_PIN                PB6
+#define LED1_PIN                PB5
+#define LED2_PIN                PB4
 
 #define BEEPER                  PC1
 #define BEEPER_INVERTED
@@ -62,10 +62,13 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4 // 21MHz
 
-#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream5
-#define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG DMA_FLAG_TCIF1_5
-#define SDCARD_DMA_CLK                      RCC_AHB1Periph_DMA1
-#define SDCARD_DMA_CHANNEL                  DMA_CHANNEL_0
+//#define SDCARD_DMA_STREAM_TX_FULL           DMA1_Stream5
+//#define SDCARD_DMA_TX                       DMA1
+//#define SDCARD_DMA_STREAM_TX                5
+//#define SDCARD_DMA_CLK                      LL_AHB1_GRP1_PERIPH_DMA1
+
+//#define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG DMA_FLAG_TCIF1_0
+//#define SDCARD_DMA_CHANNEL                  DMA_CHANNEL_0
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
@@ -94,8 +97,8 @@
 
 #define SERIAL_PORT_COUNT       6
 
-//#define USE_ESCSERIAL //TODO: make ESC serial F7 compatible
-//#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define USE_ESCSERIAL
+#define ESCSERIAL_TIMER_TX_PIN  PC7 // (Hardware=0, PPM)
 
 #define USE_SPI
 
@@ -127,8 +130,6 @@
 #define SERIALRX_UART           SERIAL_PORT_USART6
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
-
-#define SPEKTRUM_BIND_PIN       UART3_RX_PIN
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff

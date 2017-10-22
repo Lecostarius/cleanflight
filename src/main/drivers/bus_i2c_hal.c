@@ -65,9 +65,9 @@ const i2cHardware_t i2cHardware[I2CDEV_COUNT] = {
     },
 #endif
 #ifdef USE_I2C_DEVICE_3
-    {   
+    {
         .device = I2CDEV_3,
-        .reg = I2C3, 
+        .reg = I2C3,
         .sclPins = { DEFIO_TAG_E(PA8) },
         .sdaPins = { DEFIO_TAG_E(PC9) },
         .rcc = RCC_APB1(I2C3),
@@ -163,12 +163,12 @@ bool i2cWriteBuffer(I2CDevice device, uint8_t addr_, uint8_t reg_, uint8_t len_,
 
     HAL_StatusTypeDef status;
 
-    if(reg_ == 0xFF)
+    if (reg_ == 0xFF)
         status = HAL_I2C_Master_Transmit(pHandle ,addr_ << 1, data, len_, I2C_DEFAULT_TIMEOUT);
     else
         status = HAL_I2C_Mem_Write(pHandle ,addr_ << 1, reg_, I2C_MEMADD_SIZE_8BIT,data, len_, I2C_DEFAULT_TIMEOUT);
 
-    if(status != HAL_OK)
+    if (status != HAL_OK)
         return i2cHandleHardwareFailure(device);
 
     return true;
@@ -193,12 +193,12 @@ bool i2cRead(I2CDevice device, uint8_t addr_, uint8_t reg_, uint8_t len, uint8_t
 
     HAL_StatusTypeDef status;
 
-    if(reg_ == 0xFF)
+    if (reg_ == 0xFF)
         status = HAL_I2C_Master_Receive(pHandle ,addr_ << 1, buf, len, I2C_DEFAULT_TIMEOUT);
     else
         status = HAL_I2C_Mem_Read(pHandle, addr_ << 1, reg_, I2C_MEMADD_SIZE_8BIT,buf, len, I2C_DEFAULT_TIMEOUT);
 
-    if(status != HAL_OK)
+    if (status != HAL_OK)
         return i2cHandleHardwareFailure(device);
 
     return true;
@@ -282,7 +282,6 @@ uint16_t i2cGetErrorCounter(void)
 static void i2cUnstick(IO_t scl, IO_t sda)
 {
     int i;
-    int timeout = 100;
 
     IOHi(scl);
     IOHi(sda);
@@ -290,27 +289,31 @@ static void i2cUnstick(IO_t scl, IO_t sda)
     IOConfigGPIO(scl, IOCFG_OUT_OD);
     IOConfigGPIO(sda, IOCFG_OUT_OD);
 
-    for (i = 0; i < 8; i++) {
+    // Analog Devices AN-686
+    // We need 9 clock pulses + STOP condition
+    for (i = 0; i < 9; i++) {
         // Wait for any clock stretching to finish
+        int timeout = 100;
         while (!IORead(scl) && timeout) {
-            delayMicroseconds(10);
+            delayMicroseconds(5);
             timeout--;
         }
 
         // Pull low
         IOLo(scl); // Set bus low
-        delayMicroseconds(10);
+        delayMicroseconds(5);
         IOHi(scl); // Set bus high
-        delayMicroseconds(10);
+        delayMicroseconds(5);
     }
 
-    // Generate a start then stop condition
-    IOLo(sda); // Set bus data low
-    delayMicroseconds(10);
-    IOLo(scl); // Set bus scl low
-    delayMicroseconds(10);
+    // Generate a stop condition in case there was none
+    IOLo(scl);
+    delayMicroseconds(5);
+    IOLo(sda);
+    delayMicroseconds(5);
+
     IOHi(scl); // Set bus scl high
-    delayMicroseconds(10);
+    delayMicroseconds(5);
     IOHi(sda); // Set bus sda high
 }
 

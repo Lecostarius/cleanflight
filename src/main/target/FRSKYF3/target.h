@@ -17,11 +17,13 @@
 
 #pragma once
 
-#define TARGET_BOARD_IDENTIFIER "FRF3"  
+#undef TELEMETRY_JETIEXBUS // no space left
+
+#define TARGET_BOARD_IDENTIFIER "FRF3"
 #define TARGET_CONFIG
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_NONE
 
-#define LED0                    PB3
+#define LED0_PIN                PB3
 #define BEEPER                  PC15
 #define BEEPER_INVERTED
 
@@ -62,11 +64,11 @@
 #define UART1_TX_PIN            PA9
 #define UART1_RX_PIN            PA10
 
-#define UART2_TX_PIN            PA14 
+#define UART2_TX_PIN            PA14
 #define UART2_RX_PIN            PA15
 
-#define UART3_TX_PIN            PB10 
-#define UART3_RX_PIN            PB11 
+#define UART3_TX_PIN            PB10
+#define UART3_RX_PIN            PB11
 
 #define USE_I2C
 #define USE_I2C_DEVICE_1
@@ -76,7 +78,7 @@
 
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 
+#define ESCSERIAL_TIMER_TX_PIN  PB9  // (HARDARE=0)
 #define USE_SPI
 #define OSD
 
@@ -84,12 +86,12 @@
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      PB4
-#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD*2)
+#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
 #define USE_SPI
-#define USE_SPI_DEVICE_2 
-#define USE_SPI_DEVICE_1 
+#define USE_SPI_DEVICE_2
+#define USE_SPI_DEVICE_1
 
 #define SPI2_NSS_PIN            PB12
 #define SPI2_SCK_PIN            PB13
@@ -102,16 +104,14 @@
 #define SPI1_MOSI_PIN           PA7
 
 #define USE_SDCARD
-#define USE_SDCARD_SPI1
 
 #define SDCARD_DETECT_INVERTED
-
 #define SDCARD_DETECT_PIN                   PB5
 #define SDCARD_SPI_INSTANCE                 SPI1
 #define SDCARD_SPI_CS_PIN                   SPI1_NSS_PIN
 
 #define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256
-#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4  
+#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER     4
 
 #define USE_ESC_SENSOR
 
@@ -138,8 +138,6 @@
 #define TELEMETRY_UART          SERIAL_PORT_USART3
 #define SERIALRX_UART           SERIAL_PORT_USART2
 
-#define SPEKTRUM_BIND_PIN       UART3_RX_PIN
-
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define TARGET_IO_PORTA         0xffff
@@ -147,5 +145,5 @@
 #define TARGET_IO_PORTC         (BIT(13)|BIT(14)|BIT(15))
 #define TARGET_IO_PORTF         (BIT(0)|BIT(1)|BIT(4))
 
-#define USABLE_TIMER_CHANNEL_COUNT 9 
+#define USABLE_TIMER_CHANNEL_COUNT 9
 #define USED_TIMERS             (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(8) | TIM_N(17))

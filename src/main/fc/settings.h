@@ -17,6 +17,10 @@
 
 #pragma once
 
+#include <stdint.h>
+#include <stdbool.h>
+#include "config/parameter_group.h"
+
 
 typedef enum {
     TABLE_OFF_ON = 0,
@@ -41,6 +45,7 @@ typedef enum {
     TABLE_RX_SPI,
 #endif
     TABLE_GYRO_LPF,
+    TABLE_GYRO_HARDWARE,
     TABLE_ACC_HARDWARE,
 #ifdef BARO
     TABLE_BARO_HARDWARE,
@@ -59,6 +64,13 @@ typedef enum {
 #ifdef OSD
     TABLE_OSD,
 #endif
+#ifdef USE_CAMERA_CONTROL
+    TABLE_CAMERA_CONTROL_MODE,
+#endif
+    TABLE_BUS_TYPE,
+#ifdef USE_MAX7456
+    TABLE_MAX7456_CLOCK,
+#endif
     LOOKUP_TABLE_COUNT
 } lookupTableIndex_e;
 
@@ -69,34 +81,31 @@ typedef struct lookupTableEntry_s {
 
 
 #define VALUE_TYPE_OFFSET 0
-#define VALUE_SECTION_OFFSET 4
-#define VALUE_MODE_OFFSET 6
+#define VALUE_SECTION_OFFSET 2
+#define VALUE_MODE_OFFSET 4
 
 typedef enum {
-    // value type, bits 0-3
+    // value type, bits 0-1
     VAR_UINT8 = (0 << VALUE_TYPE_OFFSET),
     VAR_INT8 = (1 << VALUE_TYPE_OFFSET),
     VAR_UINT16 = (2 << VALUE_TYPE_OFFSET),
     VAR_INT16 = (3 << VALUE_TYPE_OFFSET),
 
-    // value section, bits 4-5
+    // value section, bits 2-3
     MASTER_VALUE = (0 << VALUE_SECTION_OFFSET),
     PROFILE_VALUE = (1 << VALUE_SECTION_OFFSET),
-    PROFILE_RATE_VALUE = (2 << VALUE_SECTION_OFFSET), // 0x20
-    // value mode
-    MODE_DIRECT = (0 << VALUE_MODE_OFFSET), // 0x40
-    MODE_LOOKUP = (1 << VALUE_MODE_OFFSET) // 0x80
+    PROFILE_RATE_VALUE = (2 << VALUE_SECTION_OFFSET),
+
+    // value mode, bits 4-5
+    MODE_DIRECT = (0 << VALUE_MODE_OFFSET),
+    MODE_LOOKUP = (1 << VALUE_MODE_OFFSET),
+    MODE_ARRAY = (2 << VALUE_MODE_OFFSET)
 } cliValueFlag_e;
 
-#define VALUE_TYPE_MASK (0x0F)
-#define VALUE_SECTION_MASK (0x30)
-#define VALUE_MODE_MASK (0xC0)
 
-typedef union {
-    int8_t int8;
-    uint8_t uint8;
-    int16_t int16;
-} cliVar_t;
+#define VALUE_TYPE_MASK (0x03)
+#define VALUE_SECTION_MASK (0x0c)
+#define VALUE_MODE_MASK (0x30)
 
 typedef struct cliMinMaxConfig_s {
     const int16_t min;
@@ -107,12 +116,17 @@ typedef struct cliLookupTableConfig_s {
     const lookupTableIndex_e tableIndex;
 } cliLookupTableConfig_t;
 
+typedef struct cliArrayLengthConfig_s {
+    const uint8_t length;
+} cliArrayLengthConfig_t;
+
 typedef union {
     cliLookupTableConfig_t lookup;
     cliMinMaxConfig_t minmax;
+    cliArrayLengthConfig_t array;
 } cliValueConfig_t;
 
-typedef struct {
+typedef struct clivalue_s {
     const char *name;
     const uint8_t type; // see cliValueFlag_e
     const cliValueConfig_t config;
@@ -128,6 +142,8 @@ extern const uint16_t valueTableEntryCount;
 extern const clivalue_t valueTable[];
 //extern const uint8_t lookupTablesEntryCount;
 
+extern const char * const lookupTableGyroHardware[];
+
 extern const char * const lookupTableAccHardware[];
 //extern const uint8_t lookupTableAccHardwareEntryCount;
 
@@ -136,6 +152,3 @@ extern const char * const lookupTableBaroHardware[];
 
 extern const char * const lookupTableMagHardware[];
 //extern const uint8_t lookupTableMagHardwareEntryCount;
-
-
-

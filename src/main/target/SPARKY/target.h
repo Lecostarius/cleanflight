@@ -21,8 +21,8 @@
 
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_NONE
 
-#define LED0                    PB4  // Blue (Rev 1 & 2) - PB4
-#define LED1                    PB5  // Green (Rev 1) / Red (Rev 2) - PB5
+#define LED0_PIN                PB4  // Blue (Rev 1 & 2) - PB4
+#define LED1_PIN                PB5  // Green (Rev 1) / Red (Rev 2) - PB5
 
 #define BEEPER                  PA1
 #define BEEPER_INVERTED
@@ -62,7 +62,7 @@
 #define AVOID_UART2_FOR_PWM_PPM
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PB15  // (HARDARE=0)
 
 #define UART1_TX_PIN            PB6
 #define UART1_RX_PIN            PB7
@@ -90,8 +90,6 @@
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
-#define SPEKTRUM_BIND_PIN         UART2_RX_PIN
-
 //#define SONAR
 //#define SONAR_ECHO_PIN          PB1
 //#define SONAR_TRIGGER_PIN       PA2
@@ -106,4 +104,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 11
 #define USED_TIMERS             (TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(15) | TIM_N(17))
-

@@ -18,6 +18,11 @@
 
 extern "C" {
 
+#include "platform.h"
+#include "target.h"
+#include "drivers/barometer/barometer.h"
+#include "drivers/bus.h"
+
 int8_t ms5611_crc(uint16_t *prom);
 void ms5611_calculate(int32_t *pressure, int32_t *temperature);
 
@@ -141,12 +146,22 @@ extern "C" {
 void delay(uint32_t) {}
 void delayMicroseconds(uint32_t) {}
 
-bool i2cWrite(uint8_t, uint8_t, uint8_t) {
-    return true;
+bool busReadRegisterBuffer(const busDevice_t*, uint8_t, uint8_t*, uint8_t) {return true;}
+bool busWriteRegister(const busDevice_t*, uint8_t, uint8_t) {return true;}
+
+void spiSetDivisor() {
 }
 
-bool i2cRead(uint8_t, uint8_t, uint8_t, uint8_t) {
-    return true;
+void IOConfigGPIO() {
+}
+
+void IOHi() {
+}
+
+void IOInit() {
+}
+
+void IORelease() {
 }
 
 }

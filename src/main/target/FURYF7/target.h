@@ -21,8 +21,8 @@
 
 #define USBD_PRODUCT_STRING "FuryF7"
 
-#define LED0                    PB5
-#define LED1                    PB4
+#define LED0_PIN                PB5
+#define LED1_PIN                PB4
 
 #define BEEPER                  PD10
 #define BEEPER_INVERTED
@@ -74,12 +74,7 @@
 
 #define USE_SDCARD
 #define SDCARD_DETECT_INVERTED
-
 #define SDCARD_DETECT_PIN                   PD2
-#define SDCARD_DETECT_EXTI_LINE             EXTI_Line2
-#define SDCARD_DETECT_EXTI_PIN_SOURCE       EXTI_PinSource2
-#define SDCARD_DETECT_EXTI_PORT_SOURCE      EXTI_PortSourceGPIOD
-#define SDCARD_DETECT_EXTI_IRQn             EXTI2_IRQn
 
 #define SDCARD_SPI_INSTANCE                 SPI4
 #define SDCARD_SPI_CS_PIN                   SPI4_NSS_PIN
@@ -88,9 +83,12 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 8 // 13.5MHz
 
-#define SDCARD_DMA_CHANNEL_TX               DMA2_Stream1
+#define SDCARD_DMA_STREAM_TX_FULL           DMA2_Stream1
+#define SDCARD_DMA_TX                       DMA2
+#define SDCARD_DMA_STREAM_TX                1
+#define SDCARD_DMA_CLK                      LL_AHB1_GRP1_PERIPH_DMA2
+
 #define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG DMA_FLAG_TCIF1_5
-#define SDCARD_DMA_CLK                      RCC_AHB1Periph_DMA2
 #define SDCARD_DMA_CHANNEL                  DMA_CHANNEL_4
 
 #define USE_FLASHFS
@@ -118,6 +116,9 @@
 
 #define SERIAL_PORT_COUNT       6 //VCP, USART1, USART3, USART6, SOFTSERIAL x 2
 
+#define USE_ESCSERIAL
+#define ESCSERIAL_TIMER_TX_PIN  PC9 // (Hardware=0, PPM)
+
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              (I2CDEV_1)
@@ -138,7 +139,11 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 
-#define SPEKTRUM_BIND_PIN       PB11
+// XXX To target maintainer:
+// USE_SPEKTRUM_BIND is enabled for this target, and it will use
+// RX (or TX if half-duplex) pin of the UART the receiver is connected.
+// If PB11 is critical for this target, please resurrect this line.
+//#define SPEKTRUM_BIND_PIN       PB11
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 

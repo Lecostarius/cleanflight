@@ -114,6 +114,7 @@
 #define TELEMETRY_SRXL
 #define USE_DASHBOARD
 #define USE_MSP_DISPLAYPORT
+#define USE_RCSPLIT
 #define USE_RX_MSP
 #define USE_SERIALRX_JETIEXBUS
 #define USE_SENSOR_NAMES
@@ -122,12 +123,25 @@
 #define VTX_CONTROL
 #define VTX_SMARTAUDIO
 #define VTX_TRAMP
+#define USE_CAMERA_CONTROL
+#define USE_HUFFMAN
+#define USE_COPY_PROFILE_CMS_MENU
+#define USE_MSP_OVER_TELEMETRY
+#define USE_OSD_ITEM_POSITIONS
+
+#ifdef USE_SERIALRX_SPEKTRUM
+#define USE_SPEKTRUM_BIND
+#define USE_SPEKTRUM_BIND_PLUG
+#define USE_SPEKTRUM_REAL_RSSI
+#define USE_SPEKTRUM_FAKE_RSSI
+#define USE_SPEKTRUM_RSSI_PERCENT_CONVERSION
+#endif
 #endif
 
 #if (FLASH_SIZE > 256)
-// Temporarily moved this here because of overflowing flash size on F3
+// Temporarily moved GPS here because of overflowing flash size on F3
 #define GPS
-
+#define USE_NAV
 #define USE_UNCOMMON_MIXERS
 #endif
 

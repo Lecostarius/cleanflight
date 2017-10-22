@@ -17,15 +17,19 @@
 
 #pragma once
 
+#include "common/time.h"
+
 typedef enum {
     FRSKY_VFAS_PRECISION_LOW = 0,
     FRSKY_VFAS_PRECISION_HIGH
 } frskyVFasPrecision_e;
 
-void handleFrSkyTelemetry(void);
+typedef void frSkyTelemetryInitFrameFn(void);
+typedef void frSkyTelemetryWriteFn(uint8_t ch);
+
+void handleFrSkyTelemetry(timeUs_t currentTimeUs);
 void checkFrSkyTelemetryState(void);
-
 void initFrSkyTelemetry(void);
-void configureFrSkyTelemetryPort(void);
-void freeFrSkyTelemetryPort(void);
 
+void initFrSkyExternalTelemetry(frSkyTelemetryInitFrameFn *frSkyTelemetryInitFrameExternal, frSkyTelemetryWriteFn *frSkyTelemetryWriteExternal);
+void deinitFrSkyExternalTelemetry(void);

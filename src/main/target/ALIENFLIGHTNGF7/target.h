@@ -25,8 +25,8 @@
 
 #define USBD_PRODUCT_STRING "AlienFlightNG F7"
 
-#define LED0                    PC12
-#define LED1                    PD2
+#define LED0_PIN                PC12
+#define LED1_PIN                PD2
 
 #define BEEPER                  PC13
 #define BEEPER_INVERTED
@@ -53,9 +53,13 @@
 #define USE_MAG_HMC5883
 #define USE_MAG_SPI_HMC5883
 #define USE_MAG_AK8963
+#define USE_MAG_SPI_AK8963
 
 #define HMC5883_CS_PIN          PC15
 #define HMC5883_SPI_INSTANCE    SPI3
+
+#define AK8963_CS_PIN           PC15
+#define AK8963_SPI_INSTANCE     SPI3
 
 #define MAG_HMC5883_ALIGN       CW180_DEG
 #define MAG_AK8963_ALIGN        CW270_DEG
@@ -74,35 +78,33 @@
 
 #define USE_SDCARD
 
-//#define SDCARD_DETECT_INVERTED
-
+#define SDCARD_DETECT_INVERTED
 #define SDCARD_DETECT_PIN               PB11
-#define SDCARD_DETECT_EXTI_LINE         EXTI_Line10
-#define SDCARD_DETECT_EXTI_PIN_SOURCE   EXTI_PinSource10
-#define SDCARD_DETECT_EXTI_PORT_SOURCE  EXTI_PortSourceGPIOB
-#define SDCARD_DETECT_EXTI_IRQn         EXTI15_10_IRQn
 
 #define SDCARD_SPI_INSTANCE             SPI2
 #define SDCARD_SPI_CS_PIN               PB10
 
 // SPI2 is on the APB1 bus whose clock runs at 84MHz. Divide to under 400kHz for init:
-#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 328kHz
+#define SDCARD_SPI_INITIALIZATION_CLOCK_DIVIDER 256 // 422kHz
 // Divide to under 25MHz for normal operation:
-#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 4 // 21MHz
+#define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 8 // 27MHz
 
-#define SDCARD_DMA_CHANNEL_TX               DMA1_Stream4
+#define SDCARD_DMA_STREAM_TX_FULL           DMA1_Stream4
+#define SDCARD_DMA_TX                       DMA1
+#define SDCARD_DMA_STREAM_TX                4
+#define SDCARD_DMA_CLK                      LL_AHB1_GRP1_PERIPH_DMA1
+
 #define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG DMA_FLAG_TCIF4
-#define SDCARD_DMA_CLK                      RCC_AHB1Periph_DMA1
 #define SDCARD_DMA_CHANNEL                  DMA_CHANNEL_0
 
 // Performance logging for SD card operations:
 // #define AFATFS_USE_INTROSPECTIVE_LOGGING
 
-//#define M25P16_CS_PIN        SPI2_NSS_PIN
-//#define M25P16_SPI_INSTANCE  SPI2
+#define M25P16_CS_PIN        SPI2_NSS_PIN
+#define M25P16_SPI_INSTANCE  SPI2
 
-//#define USE_FLASHFS
-//#define USE_FLASH_M25P16
+#define USE_FLASHFS
+#define USE_FLASH_M25P16
 
 #define USE_VCP
 
@@ -127,8 +129,8 @@
 
 #define SERIAL_PORT_COUNT       6
 
-//#define USE_ESCSERIAL
-//#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define USE_ESCSERIAL
+#define ESCSERIAL_TIMER_TX_PIN  PA8 // (Hardware=0, PPM/LED_STRIP) XXX Crash if using an LED strip.
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -171,8 +173,6 @@
 // LED strip configuration.
 #define LED_STRIP
 
-#define SPEKTRUM_BIND_PIN       UART2_RX_PIN
-
 #define BINDPLUG_PIN            PB2
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
@@ -191,4 +191,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT      13
 #define USED_TIMERS             ( TIM_N(1) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) )
-

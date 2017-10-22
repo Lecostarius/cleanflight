@@ -21,7 +21,7 @@
 #define TARGET_BOARD_IDENTIFIER "PLUM"
 #define USBD_PRODUCT_STRING     "PLUMF4"
 
-#elif defined(KIWIF4V2)	
+#elif defined(KIWIF4V2)
 #define TARGET_BOARD_IDENTIFIER "KIW2"
 #define USBD_PRODUCT_STRING     "KIWIF4V2"
 
@@ -32,11 +32,11 @@
 #endif
 
 #if defined(PLUMF4) || defined(KIWIF4V2)
-#define LED0                    PB4
+#define LED0_PIN                PB4
 
 #else
-#define LED0                    PB5
-#define LED1                    PB4				
+#define LED0_PIN                PB5
+#define LED1_PIN                PB4
 #endif
 
 #define BEEPER                  PA8
@@ -132,7 +132,7 @@
 #define SERIAL_PORT_COUNT       6 //VCP, USART1, USART3, USART6, SOFTSERIAL x 2
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PA3  // (HARDARE=0)
 
 #define USE_SPI
 
@@ -152,13 +152,13 @@
 #define SPI3_MISO_PIN           PC11
 #define SPI3_MOSI_PIN           PC12
 
-/* 
+/*
 #define USE_I2C
 #define USE_I2C_DEVICE_1
 #define I2C_DEVICE              (I2CDEV_1)
 #define USE_I2C_PULLUP
 #define I2C1_SCL                PB6
-#define I2C1_SDA                PB7 
+#define I2C1_SDA                PB7
 */
 
 #define LED_STRIP
@@ -178,8 +178,6 @@
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define SERIALRX_UART           SERIAL_PORT_USART1
 
-#define SPEKTRUM_BIND_PIN       UART3_RX_PIN
-
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define TARGET_IO_PORTA         0xffff
@@ -193,4 +191,3 @@
 
 #define CMS
 #define USE_MSP_DISPLAYPORT
-

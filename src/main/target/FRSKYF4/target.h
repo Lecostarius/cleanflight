@@ -19,11 +19,11 @@
 #define USBD_PRODUCT_STRING "FRSKYF4"
 #define TARGET_CONFIG
 
-#define LED0                    PB5
+#define LED0_PIN                PB5
 #define BEEPER                  PB4
 #define BEEPER_INVERTED
 
-#define INVERTER_PIN_UART6      PC8 
+#define INVERTER_PIN_UART6      PC8
 
 #define MPU6000_CS_PIN          PA4
 #define MPU6000_SPI_INSTANCE    SPI1
@@ -41,31 +41,23 @@
 #define MPU_INT_EXTI            PC4
 #define USE_MPU_DATA_READY_SIGNAL
 
-//#define MAG
-//#define USE_MAG_HMC5883
-//#define MAG_HMC5883_ALIGN       CW90_DEG
-
 #define BARO
-//#define USE_BARO_MS5611
-
 #define USE_BARO_BMP280
 #define USE_BARO_SPI_BMP280
 #define BMP280_SPI_INSTANCE     SPI3
-#define BMP280_CS_PIN           PB3 
+#define BMP280_CS_PIN           PB3
 
 #define OSD
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI3
 #define MAX7456_SPI_CS_PIN      PA15
-#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD*2)
+#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
+
 #define USE_SDCARD
-#define USE_SDCARD_SPI2
-
 #define SDCARD_DETECT_INVERTED
-
 #define SDCARD_DETECT_PIN               PB7
 #define SDCARD_SPI_INSTANCE             SPI2
 #define SDCARD_SPI_CS_PIN               SPI2_NSS_PIN
@@ -96,10 +88,10 @@
 #define USE_SOFTSERIAL1
 #define USE_SOFTSERIAL2
 
-#define SERIAL_PORT_COUNT       6 
+#define SERIAL_PORT_COUNT       6
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 
+#define ESCSERIAL_TIMER_TX_PIN  PB8  // (HARDARE=0,PPM)
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -123,8 +115,6 @@
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define DEFAULT_FEATURES        (FEATURE_OSD)
 #define AVOID_UART1_FOR_PWM_PPM
-#define SPEKTRUM_BIND_PIN       UART1_RX_PIN
-
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
 #define TELEMETRY_UART          SERIAL_PORT_USART6
 #define SERIALRX_UART           SERIAL_PORT_USART1

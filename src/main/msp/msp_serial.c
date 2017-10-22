@@ -83,7 +83,7 @@ static bool mspSerialProcessReceivedData(mspPort_t *mspPort, uint8_t c)
         mspPort->c_state = (c == 'M') ? MSP_HEADER_M : MSP_IDLE;
     } else if (mspPort->c_state == MSP_HEADER_M) {
         mspPort->c_state = MSP_IDLE;
-        switch(c) {
+        switch (c) {
             case '<': // COMMAND
                 mspPort->packetType = MSP_PACKET_COMMAND;
                 mspPort->c_state = MSP_HEADER_ARROW;
@@ -296,12 +296,15 @@ int mspSerialPush(uint8_t cmd, uint8_t *data, int datalen, mspDirection_e direct
         };
 
         ret = mspSerialEncode(mspPort, &push);
+        
+        // We only want to send the data on the first non-VCP MSP port, to allow users to connect bluetooth devices to other MSP ports
+        break;
     }
     return ret; // return the number of bytes written
 }
 
 
-uint32_t mspSerialTxBytesFree()
+uint32_t mspSerialTxBytesFree(void)
 {
     uint32_t ret = UINT32_MAX;
 

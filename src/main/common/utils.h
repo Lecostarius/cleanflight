@@ -20,6 +20,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define NOOP do {} while (0)
+
 #define ARRAYLEN(x) (sizeof(x) / sizeof((x)[0]))
 #define ARRAYEND(x) (&(x)[ARRAYLEN(x)])
 
@@ -53,6 +55,9 @@
 #define UNUSED(x) (void)(x)
 #endif
 #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+#define STATIC_ASSERT(condition, name) \
+    typedef char assert_failed_ ## name [(condition) ? 1 : -1 ] __attribute__((unused))
+
 
 #define BIT(x) (1 << (x))
 

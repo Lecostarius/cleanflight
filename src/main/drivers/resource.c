@@ -52,6 +52,7 @@ const char * const ownerNames[OWNER_TOTAL_COUNT] = {
     "SPI_CS",
     "MPU_EXTI",
     "BARO_EXTI",
+    "COMPASS_EXTI",
     "USB",
     "USB_DETECT",
     "BEEPER",
@@ -61,6 +62,9 @@ const char * const ownerNames[OWNER_TOTAL_COUNT] = {
     "LED_STRIP",
     "TRANSPONDER",
     "VTX",
-    "COMPASS_CS"
+    "COMPASS_CS",
+    "SPI_PREINIT",
+    "RX_BIND_PLUG",
+    "ESCSERIAL",
+    "CAMERA_CONTROL",
 };
-

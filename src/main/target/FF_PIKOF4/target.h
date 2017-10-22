@@ -18,9 +18,10 @@
 #pragma once
 #define TARGET_BOARD_IDENTIFIER "PIK4"
 #define USBD_PRODUCT_STRING     "PikoF4"
+#define TARGET_CONFIG
 /*--------------LED----------------*/
-#define LED0                    PA15
-#define LED1                    PB6
+#define LED0_PIN                PA15
+#define LED1_PIN                PB6
 #define LED_STRIP
 /*---------------------------------*/
 
@@ -98,8 +99,6 @@
 #define UART6_TX_PIN            PC6
 
 #define SERIAL_PORT_COUNT       4
-//SPECKTRUM BIND
-#define SPEKTRUM_BIND_PIN       UART3_RX_PIN
 
 #define CMS
 #define USE_MSP_DISPLAYPORT
@@ -131,7 +130,7 @@
 #define USE_ESC_SENSOR
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PA3  // (HARDARE=0)
 /*---------------------------------*/
 
 /*--------DEFAULT VALUES-----------*/

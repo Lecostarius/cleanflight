@@ -43,7 +43,7 @@
 static void usartConfigurePinInversion(uartPort_t *uartPort) {
     bool inverted = uartPort->port.options & SERIAL_INVERTED;
 
-    if(inverted)
+    if (inverted)
     {
         if (uartPort->port.mode & MODE_RX)
         {
@@ -94,7 +94,7 @@ void uartReconfigure(uartPort_t *uartPort)
 
     usartConfigurePinInversion(uartPort);
 
-    if(uartPort->port.options & SERIAL_BIDIR)
+    if (uartPort->port.options & SERIAL_BIDIR)
     {
         HAL_HalfDuplex_Init(&uartPort->Handle);
     }
@@ -167,22 +167,23 @@ void uartReconfigure(uartPort_t *uartPort)
 
             HAL_DMA_DeInit(&uartPort->txDMAHandle);
             HAL_StatusTypeDef status = HAL_DMA_Init(&uartPort->txDMAHandle);
-            if(status != HAL_OK)
+            if (status != HAL_OK)
             {
-                while(1);
+                while (1);
             }
             /* Associate the initialized DMA handle to the UART handle */
             __HAL_LINKDMA(&uartPort->Handle, hdmatx, uartPort->txDMAHandle);
 
             __HAL_DMA_SET_COUNTER(&uartPort->txDMAHandle, 0);
         } else {
-            __HAL_UART_ENABLE_IT(&uartPort->Handle, UART_IT_TXE);
+            /* Enable the UART Transmit Data Register Empty Interrupt */
+            SET_BIT(uartPort->USARTx->CR1, USART_CR1_TXEIE);
         }
     }
     return;
 }
 
-serialPort_t *uartOpen(UARTDevice device, serialReceiveCallbackPtr callback, uint32_t baudRate, portMode_t mode, portOptions_t options)
+serialPort_t *uartOpen(UARTDevice_e device, serialReceiveCallbackPtr callback, uint32_t baudRate, portMode_e mode, portOptions_e options)
 {
     uartPort_t *s = serialUART(device, baudRate, mode, options);
 
@@ -213,7 +214,7 @@ void uartSetBaudRate(serialPort_t *instance, uint32_t baudRate)
     uartReconfigure(uartPort);
 }
 
-void uartSetMode(serialPort_t *instance, portMode_t mode)
+void uartSetMode(serialPort_t *instance, portMode_e mode)
 {
     uartPort_t *uartPort = (uartPort_t *)instance;
     uartPort->port.mode = mode;
@@ -225,7 +226,7 @@ void uartStartTxDMA(uartPort_t *s)
     uint16_t size = 0;
     uint32_t fromwhere=0;
     HAL_UART_StateTypeDef state = HAL_UART_GetState(&s->Handle);
-    if((state & HAL_UART_STATE_BUSY_TX) == HAL_UART_STATE_BUSY_TX)
+    if ((state & HAL_UART_STATE_BUSY_TX) == HAL_UART_STATE_BUSY_TX)
         return;
 
     if (s->port.txBufferHead > s->port.txBufferTail) {
@@ -300,9 +301,8 @@ uint32_t uartTotalTxBytesFree(const serialPort_t *instance)
 
 bool isUartTransmitBufferEmpty(const serialPort_t *instance)
 {
-    uartPort_t *s = (uartPort_t *)instance;
+    const uartPort_t *s = (uartPort_t *)instance;
     if (s->txDMAStream)
-
         return s->txDMAEmpty;
     else
         return s->port.txBufferTail == s->port.txBufferHead;
@@ -313,9 +313,7 @@ uint8_t uartRead(serialPort_t *instance)
     uint8_t ch;
     uartPort_t *s = (uartPort_t *)instance;
 
-
     if (s->rxDMAStream) {
-
         ch = s->port.rxBuffer[s->port.rxBufferSize - s->rxDMAPos];
         if (--s->rxDMAPos == 0)
             s->rxDMAPos = s->port.rxBufferSize;

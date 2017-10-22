@@ -20,9 +20,9 @@
 
 #define USBD_PRODUCT_STRING     "Swift-Flyer F4BY"
 
-#define LED0                    PE3 // Blue LED
-#define LED1                    PE2 // Red LED
-#define LED2                    PE1 // Blue LED
+#define LED0_PIN                PE3 // Blue LED
+#define LED1_PIN                PE2 // Red LED
+#define LED2_PIN                PE1 // Blue LED
 
 #define BEEPER                  PE5
 
@@ -104,7 +104,7 @@
 #define SERIAL_PORT_COUNT       8 //VCP, UART1, UART2, UART3, UART4, UART6, SOFTSERIAL x 2
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 8 // PWM 9
+#define ESCSERIAL_TIMER_TX_PIN  PA0  // (HARDARE=8)
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -146,8 +146,6 @@
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 
-#define SPEKTRUM_BIND_PIN       UART6_RX_PIN
-
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define TARGET_IO_PORTA         0xffff
@@ -158,4 +156,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 17
 #define USED_TIMERS             ( TIM_N(1) |TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(8) | TIM_N(9))
-

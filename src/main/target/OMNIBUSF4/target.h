@@ -15,16 +15,27 @@
 
 #pragma once
 
+#define TARGET_CONFIG
+
 #if defined(OMNIBUSF4SD)
 #define TARGET_BOARD_IDENTIFIER "OBSD"
 #elif defined(LUXF4OSD)
 #define TARGET_BOARD_IDENTIFIER "LUX4"
+#elif defined(DYSF4PRO)
+#define TARGET_BOARD_IDENTIFIER "DYS4"
+#elif defined(XRACERF4)
+#define TARGET_BOARD_IDENTIFIER "XRF4"
 #else
 #define TARGET_BOARD_IDENTIFIER "OBF4"
+#define OMNIBUSF4BASE // For config.c
 #endif
 
 #if defined(LUXF4OSD)
 #define USBD_PRODUCT_STRING "LuxF4osd"
+#elif defined(DYSF4PRO)
+#define USBD_PRODUCT_STRING "DysF4Pro"
+#elif defined(XRACERF4)
+#define USBD_PRODUCT_STRING "XRACERF4"
 #else
 #define USBD_PRODUCT_STRING "OmnibusF4"
 #endif
@@ -33,19 +44,19 @@
 #define USBD_SERIALNUMBER_STRING "0x8020000" // Remove this at the next major release (?)
 #endif
 
-#define LED0                    PB5
-//#define LED1                    PB4 // Remove this at the next major release
+#define LED0_PIN                PB5
+//#define LED1_PIN                PB4 // Remove this at the next major release
 #define BEEPER                  PB4
 #define BEEPER_INVERTED
 
 #ifdef OMNIBUSF4SD
+// These inverter control pins collide with timer channels on CH5 and CH6 pads.
+// Users of these timers/pads must un-map the inverter assignment explicitly.
 #define INVERTER_PIN_UART6      PC8 // Omnibus F4 V3 and later
+#define INVERTER_PIN_UART3      PC9 // Omnibus F4 Pro Corners
 #else
 #define INVERTER_PIN_UART1      PC0 // PC0 used as inverter select GPIO XXX this is not used --- remove it at the next major release
 #endif
-
-#define MPU6000_CS_PIN          PA4
-#define MPU6000_SPI_INSTANCE    SPI1
 
 #define ACC
 #define USE_ACC_SPI_MPU6000
@@ -53,18 +64,36 @@
 #define GYRO
 #define USE_GYRO_SPI_MPU6000
 
-#if defined(OMNIBUSF4SD)
-#define GYRO_MPU6000_ALIGN       CW270_DEG
-#define ACC_MPU6000_ALIGN        CW270_DEG
-#else
-#define GYRO_MPU6000_ALIGN       CW180_DEG
-#define ACC_MPU6000_ALIGN        CW180_DEG
-#endif
+#define MPU6000_CS_PIN          PA4
+#define MPU6000_SPI_INSTANCE    SPI1
 
 // MPU6000 interrupts
 #define USE_EXTI
 #define MPU_INT_EXTI            PC4
 #define USE_MPU_DATA_READY_SIGNAL
+
+#if defined(OMNIBUSF4SD)
+#define GYRO_MPU6000_ALIGN       CW270_DEG
+#define ACC_MPU6000_ALIGN        CW270_DEG
+#elif defined(XRACERF4)
+#define GYRO_MPU6000_ALIGN       CW90_DEG
+#define ACC_MPU6000_ALIGN        CW90_DEG 
+#else
+#define GYRO_MPU6000_ALIGN       CW180_DEG
+#define ACC_MPU6000_ALIGN        CW180_DEG
+#endif
+
+// Support for iFlight OMNIBUS F4 V3
+// Has ICM20608 instead of MPU6000
+// OMNIBUSF4SD is linked with both MPU6000 and MPU6500 drivers
+#if defined (OMNIBUSF4SD)
+#define USE_ACC_SPI_MPU6500
+#define USE_GYRO_SPI_MPU6500
+#define MPU6500_CS_PIN          MPU6000_CS_PIN
+#define MPU6500_SPI_INSTANCE    MPU6000_SPI_INSTANCE
+#define GYRO_MPU6500_ALIGN      GYRO_MPU6000_ALIGN
+#define ACC_MPU6500_ALIGN       ACC_MPU6000_ALIGN
+#endif
 
 #define MAG
 #define USE_MAG_HMC5883
@@ -74,28 +103,33 @@
 //#define MAG_NAZA_ALIGN CW180_DEG_FLIP  // Ditto
 
 #define BARO
-#define USE_BARO_MS5611
 #if defined(OMNIBUSF4SD)
-#define USE_BARO_BMP280
 #define USE_BARO_SPI_BMP280
 #define BMP280_SPI_INSTANCE     SPI3
 #define BMP280_CS_PIN           PB3 // v1
+#endif
+#define USE_BARO_BMP085
+#define USE_BARO_BMP280
+#define USE_BARO_MS5611
+#define BARO_I2C_INSTANCE       (I2CDEV_2)
+
+#if defined(OMNIBUSF4SD)
+#define DEFAULT_BARO_SPI_BMP280
+#else
+#define DEFAULT_BARO_BMP280
 #endif
 
 #define OSD
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI3
 #define MAX7456_SPI_CS_PIN      PA15
-#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD*2)
+#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
 #if defined(OMNIBUSF4SD)
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 #define USE_SDCARD
-#define USE_SDCARD_SPI2
-#if defined(OMNIBUSF4SD)
 #define SDCARD_DETECT_INVERTED
-#endif
 #define SDCARD_DETECT_PIN               PB7
 #define SDCARD_SPI_INSTANCE             SPI2
 #define SDCARD_SPI_CS_PIN               SPI2_NSS_PIN
@@ -128,7 +162,6 @@
 #define USE_UART1
 #define UART1_RX_PIN            PA10
 #define UART1_TX_PIN            PA9
-#define UART1_AHB1_PERIPHERALS  RCC_AHB1Periph_DMA2
 
 #define USE_UART3
 #define UART3_RX_PIN            PB11
@@ -144,7 +177,11 @@
 #define SERIAL_PORT_COUNT       6 //VCP, USART1, USART3, USART6, SOFTSERIAL x 2
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#if defined(OMNIBUSF4SD)
+#define ESCSERIAL_TIMER_TX_PIN  PB8  // (Hardware=0)
+#else
+#define ESCSERIAL_TIMER_TX_PIN  PB14 // (Hardware=0)
+#endif
 
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -177,21 +214,26 @@
 #define I2C3_SDA                NONE // PC9, CH6
 #endif
 #define I2C_DEVICE              (I2CDEV_2)
-#define OLED_I2C_INSTANCE              (I2CDEV_3)
 
 #define USE_ADC
-#define CURRENT_METER_ADC_PIN   PC1
-#define VBAT_ADC_PIN            PC2
-
-//#define RSSI_ADC_PIN          PA0
+#define CURRENT_METER_ADC_PIN   PC1  // Direct from CRNT pad (part of onboard sensor for Pro)
+#define VBAT_ADC_PIN            PC2  // 11:1 (10K + 1K) divider
+#ifdef DYSF4PRO
+#define RSSI_ADC_PIN            PC3  // Direct from RSSI pad
+#else
+#define RSSI_ADC_PIN            PA0  // Direct from RSSI pad
+#endif
 
 #define TRANSPONDER
+
+#define SONAR
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 
 #define DEFAULT_FEATURES        (FEATURE_OSD)
-#define AVOID_UART1_FOR_PWM_PPM
-#define SPEKTRUM_BIND_PIN       UART1_RX_PIN
+
+#define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
+#define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
@@ -201,8 +243,9 @@
 #define TARGET_IO_PORTD BIT(2)
 
 #ifdef OMNIBUSF4SD
-#define USABLE_TIMER_CHANNEL_COUNT 13
+#define USABLE_TIMER_CHANNEL_COUNT 15
+#define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(10) | TIM_N(12) | TIM_N(8) | TIM_N(9))
 #else
-#define USABLE_TIMER_CHANNEL_COUNT 12
-#endif
+#define USABLE_TIMER_CHANNEL_COUNT 14
 #define USED_TIMERS ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(4) | TIM_N(5) | TIM_N(12) | TIM_N(8) | TIM_N(9))
+#endif

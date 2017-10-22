@@ -17,6 +17,8 @@
 
 /* Created by jflyper */
 
+#pragma once
+
 typedef enum {
     VTXDEV_UNSUPPORTED = 0, // reserved for MSP
     VTXDEV_RTC6705    = 1,
@@ -35,7 +37,7 @@ typedef struct vtxDeviceCapability_s {
 } vtxDeviceCapability_t;
 
 typedef struct vtxDevice_s {
-    const struct vtxVTable_s const *vTable;
+    const struct vtxVTable_s * const vTable;
 
     vtxDeviceCapability_t capability;
 
@@ -76,6 +78,7 @@ typedef struct vtxVTable_s {
 
 void vtxCommonInit(void);
 void vtxCommonRegisterDevice(vtxDevice_t *pDevice);
+bool vtxCommonDeviceRegistered(void);
 
 // VTable functions
 void vtxCommonProcess(uint32_t currentTimeUs);

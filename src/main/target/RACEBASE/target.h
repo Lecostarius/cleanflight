@@ -21,10 +21,10 @@
 #define USE_HARDWARE_REVISION_DETECTION
 #define TARGET_CONFIG
 
-#define LED0                    PB3
+#define LED0_PIN                PB3
 #define LED0_INVERTED
 
-#define LED1                    PB4
+#define LED1_PIN                PB4
 #define LED1_INVERTED
 
 #define BEEPER                  PA12
@@ -57,7 +57,7 @@
 #define SERIAL_PORT_COUNT       5
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PA0  // (HARDARE=0,PPM)
 
 #define UART1_TX_PIN            PA9
 #define UART1_RX_PIN            PA10
@@ -82,7 +82,7 @@
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      PA7
-#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD*2)
+#define MAX7456_SPI_CLK         (SPI_CLOCK_STANDARD) // 10MHz
 #define MAX7456_RESTORE_CLK     (SPI_CLOCK_FAST)
 
 
@@ -120,6 +120,3 @@
 
 #define USABLE_TIMER_CHANNEL_COUNT 6
 #define USED_TIMERS  (TIM_N(2) | TIM_N(3)| TIM_N(4) | TIM_N(8) | TIM_N(17))
-
-
-

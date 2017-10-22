@@ -20,7 +20,7 @@
 
 #define USBD_PRODUCT_STRING "BeeRotorF4"
 
-#define LED0                    PB4
+#define LED0_PIN                PB4
 
 #define BEEPER                  PB3
 #define BEEPER_INVERTED
@@ -56,7 +56,6 @@
 #define MAX7456_DMA_IRQ_HANDLER_ID          DMA1_ST0_HANDLER
 
 #define USE_SDCARD
-#define USE_SDCARD_SPI2
 
 #define SDCARD_DETECT_PIN       PC3
 #define SDCARD_DETECT_INVERTED
@@ -99,7 +98,7 @@
 #define SERIAL_PORT_COUNT 4
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#define ESCSERIAL_TIMER_TX_PIN  PA3  // (HARDARE=0,PPM)
 
 #define USE_SPI
 

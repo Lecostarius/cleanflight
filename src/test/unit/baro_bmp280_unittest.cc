@@ -18,6 +18,11 @@
 
 extern "C" {
 
+#include "platform.h"
+#include "target.h"
+#include "drivers/barometer/barometer.h"
+#include "drivers/bus.h"
+
 void bmp280_calculate(int32_t *pressure, int32_t *temperature);
 
 extern uint32_t bmp280_up;
@@ -139,13 +144,23 @@ TEST(baroBmp280Test, TestBmp280CalculateZeroP)
 extern "C" {
 
 void delay(uint32_t) {}
+bool busReadRegisterBuffer(const busDevice_t*, uint8_t, uint8_t*, uint8_t) {return true;}
+bool busWriteRegister(const busDevice_t*, uint8_t, uint8_t) {return true;}
 
-bool i2cWrite(uint8_t, uint8_t, uint8_t) {
-    return true;
+void spiSetDivisor() {
 }
 
-bool i2cRead(uint8_t, uint8_t, uint8_t, uint8_t) {
-    return true;
+void IOConfigGPIO() {
 }
+
+void IOHi() {
+}
+
+void IOInit() {
+}
+
+void IORelease() {
+}
+
 
 }

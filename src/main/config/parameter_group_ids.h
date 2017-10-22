@@ -15,6 +15,8 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 // FC configuration (defined by cleanflight v1)
 #define PG_FAILSAFE_CONFIG 1 // struct OK
 #define PG_BOARD_ALIGNMENT 2 // struct OK
@@ -107,7 +109,14 @@
 #define PG_SONAR_CONFIG 516
 #define PG_ESC_SENSOR_CONFIG 517
 #define PG_I2C_CONFIG 518
-#define PG_BETAFLIGHT_END 518
+#define PG_DASHBOARD_CONFIG 519
+#define PG_SPI_PIN_CONFIG 520
+#define PG_ESCSERIAL_CONFIG 521
+#define PG_CAMERA_CONTROL_CONFIG 522
+#define PG_FRSKY_D_CONFIG 523
+#define PG_MAX7456_CONFIG 524
+#define PG_FLYSKY_CONFIG 525
+#define PG_BETAFLIGHT_END 525
 
 
 // OSD configuration (subject to change)
@@ -120,4 +129,3 @@
 #define PG_RESERVED_FOR_TESTING_1 4095
 #define PG_RESERVED_FOR_TESTING_2 4094
 #define PG_RESERVED_FOR_TESTING_3 4093
-

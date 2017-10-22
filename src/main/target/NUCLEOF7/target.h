@@ -21,8 +21,8 @@
 
 #define USBD_PRODUCT_STRING "NucleoF7"
 
-#define LED0   PB7
-#define LED1   PB14
+#define LED0_PIN   PB7
+#define LED1_PIN   PB14
 
 #define BEEPER   PA0
 #define BEEPER_INVERTED
@@ -93,6 +93,9 @@
 
 #define SERIAL_PORT_COUNT 10 //VCP, USART2, USART3, UART4, UART5, USART6, USART7, USART8, SOFTSERIAL x 2
 
+#define USE_ESCSERIAL
+#define ESCSERIAL_TIMER_TX_PIN  PB15 // (Hardware=0, PPM)
+
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_4
@@ -110,10 +113,6 @@
 #define USE_SDCARD
 #define SDCARD_DETECT_INVERTED
 #define SDCARD_DETECT_PIN                   PF14
-#define SDCARD_DETECT_EXTI_LINE             EXTI_Line14
-#define SDCARD_DETECT_EXTI_PIN_SOURCE       EXTI_PinSource14
-#define SDCARD_DETECT_EXTI_PORT_SOURCE      EXTI_PortSourceGPIOF
-#define SDCARD_DETECT_EXTI_IRQn             EXTI9_15_IRQn
 
 #define SDCARD_SPI_INSTANCE                 SPI4
 #define SDCARD_SPI_CS_PIN                   SPI4_NSS_PIN
@@ -122,9 +121,12 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 8 // 27MHz
 
-#define SDCARD_DMA_CHANNEL_TX               DMA2_Stream1
+#define SDCARD_DMA_STREAM_TX_FULL           DMA2_Stream1
+#define SDCARD_DMA_TX                       DMA2
+#define SDCARD_DMA_STREAM_TX                1
+#define SDCARD_DMA_CLK                      LL_AHB1_GRP1_PERIPH_DMA2
+
 #define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG DMA_FLAG_TCIF1_5
-#define SDCARD_DMA_CLK                      RCC_AHB1Periph_DMA2
 #define SDCARD_DMA_CHANNEL                  DMA_CHANNEL_4
 
 #define USE_I2C

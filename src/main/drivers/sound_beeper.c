@@ -35,7 +35,7 @@ static uint16_t beeperFrequency = 0;
 void systemBeep(bool onoff)
 {
 #ifdef BEEPER
-    if(beeperFrequency == 0) {
+    if (beeperFrequency == 0) {
         IOWrite(beeperIO, beeperInverted ? onoff : !onoff);
     } else {
         pwmWriteBeeper(onoff);
@@ -48,7 +48,7 @@ void systemBeep(bool onoff)
 void systemBeepToggle(void)
 {
 #ifdef BEEPER
-    if(beeperFrequency == 0) {
+    if (beeperFrequency == 0) {
         IOToggle(beeperIO);
     } else {
         pwmToggleBeeper();
@@ -60,7 +60,7 @@ void beeperInit(const beeperDevConfig_t *config)
 {
 #ifdef BEEPER
     beeperFrequency = config->frequency;
-    if(beeperFrequency == 0) {
+    if (beeperFrequency == 0) {
         beeperIO = IOGetByTag(config->ioTag);
         beeperInverted = config->isInverted;
         if (beeperIO) {
@@ -69,8 +69,8 @@ void beeperInit(const beeperDevConfig_t *config)
         }
         systemBeep(false);
     } else {
-        beeperIO = IOGetByTag(config->ioTag);
-        beeperPwmInit(beeperIO, beeperFrequency);
+        const ioTag_t beeperTag = config->ioTag;
+        beeperPwmInit(beeperTag, beeperFrequency);
     }
 #else
     UNUSED(config);

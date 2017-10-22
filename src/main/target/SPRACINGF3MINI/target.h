@@ -22,7 +22,7 @@
 
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_DEFAULT
 
-#define LED0                    PB8
+#define LED0_PIN                PB8
 #else
 #define TARGET_BOARD_IDENTIFIER "SRFM"
 
@@ -32,7 +32,7 @@
 
 #define CONFIG_FASTLOOP_PREFERRED_ACC ACC_NONE
 
-#define LED0                    PB3
+#define LED0_PIN                PB3
 #endif
 
 #define BEEPER                  PC15
@@ -96,7 +96,15 @@
 #endif
 
 #define USE_ESCSERIAL
-#define ESCSERIAL_TIMER_TX_HARDWARE 0 // PWM 1
+#ifdef TINYBEEF3
+#define ESCSERIAL_TIMER_TX_PIN  PA15 // (Hardware=0)
+#else
+#if defined(SPRACINGF3MINI_REV) && (SPRACINGF3MINI_REV <= 1)
+#define ESCSERIAL_TIMER_TX_PIN  PB5  // (Hardware=0)
+#else
+#define ESCSERIAL_TIMER_TX_PIN  PB4  // (Hardware=0)
+#endif
+#endif
 
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
@@ -141,11 +149,10 @@
 #define SPI2_MOSI_PIN           PB15
 
 #define USE_SDCARD
-#define USE_SDCARD_SPI2
 
 #define SDCARD_DETECT_INVERTED
-
 #define SDCARD_DETECT_PIN                   PC14
+
 #define SDCARD_SPI_INSTANCE                 SPI2
 #define SDCARD_SPI_CS_PIN                   SPI2_NSS_PIN
 
@@ -185,8 +192,6 @@
 
 #define BINDPLUG_PIN            BUTTON_B_PIN
 #endif
-
-#define SPEKTRUM_BIND_PIN       UART2_RX_PIN
 
 #define TARGET_IO_PORTA         0xffff
 #define TARGET_IO_PORTB         0xffff

@@ -19,6 +19,7 @@
 
 #include "common/axis.h"
 #include "config/parameter_group.h"
+#include "drivers/bus.h"
 #include "drivers/sensor.h"
 
 typedef enum {
@@ -34,6 +35,7 @@ typedef enum {
     GYRO_ICM20601,
     GYRO_ICM20602,
     GYRO_ICM20608G,
+    GYRO_ICM20649,
     GYRO_ICM20689,
     GYRO_BMI160,
     GYRO_FAKE
@@ -53,7 +55,7 @@ typedef struct gyroConfig_s {
     uint8_t  gyro_lpf;                         // gyro LPF setting - values are driver specific, in case of invalid number, a reasonable default ~30-40HZ is chosen.
     uint8_t  gyro_soft_lpf_type;
     uint8_t  gyro_soft_lpf_hz;
-    bool     gyro_isr_update;
+    bool     gyro_high_fsr;
     bool     gyro_use_32khz;
     uint8_t  gyro_to_use;
     uint16_t gyro_soft_notch_hz_1;
@@ -73,7 +75,8 @@ struct mpuConfiguration_s;
 const struct mpuConfiguration_s *gyroMpuConfiguration(void);
 struct mpuDetectionResult_s;
 const struct mpuDetectionResult_s *gyroMpuDetectionResult(void);
-void gyroStartCalibration(void);
+void gyroStartCalibration(bool isFirstArmingCalibration);
+bool isFirstArmingGyroCalibrationRunning(void);
 bool isGyroCalibrationComplete(void);
 void gyroReadTemperature(void);
 int16_t gyroGetTemperature(void);

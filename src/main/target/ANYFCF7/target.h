@@ -21,8 +21,8 @@
 
 #define USBD_PRODUCT_STRING "AnyFCF7"
 
-#define LED0   PB7
-#define LED1   PB6
+#define LED0_PIN   PB7
+#define LED1_PIN   PB6
 
 #define BEEPER   PB2 // Unused pin, can be mapped to elsewhere
 #define BEEPER_INVERTED
@@ -44,13 +44,16 @@
 #define USE_EXTI
 
 #define MAG
-//#define USE_MAG_HMC5883
-//#define HMC5883_BUS I2C_DEVICE_EXT
+#define USE_MAG_HMC5883
+#define MAG_I2C_INSTANCE           (I2CDEV_2)
+
 //#define MAG_HMC5883_ALIGN CW270_DEG_FLIP
 //#define MAG_HMC5883_ALIGN CW90_DEG
 
 #define BARO
 #define USE_BARO_MS5611
+#define USE_BARO_BMP280
+#define BARO_I2C_INSTANCE           (I2CDEV_2)
 
 #define USABLE_TIMER_CHANNEL_COUNT 16
 
@@ -94,6 +97,9 @@
 
 #define SERIAL_PORT_COUNT 11 //VCP, USART1, USART2, USART3, UART4, UART5, USART6, USART7, USART8, SOFTSERIAL x 2
 
+#define USE_ESCSERIAL
+#define ESCSERIAL_TIMER_TX_PIN  PB14 // (Hardware=0, PPM)
+
 #define USE_SPI
 #define USE_SPI_DEVICE_1
 #define USE_SPI_DEVICE_4
@@ -111,10 +117,6 @@
 #define USE_SDCARD
 #define SDCARD_DETECT_INVERTED
 #define SDCARD_DETECT_PIN                   PD3
-#define SDCARD_DETECT_EXTI_LINE             EXTI_Line3
-#define SDCARD_DETECT_EXTI_PIN_SOURCE       EXTI_PinSource3
-#define SDCARD_DETECT_EXTI_PORT_SOURCE      EXTI_PortSourceGPIOD
-#define SDCARD_DETECT_EXTI_IRQn             EXTI3_IRQn
 
 #define SDCARD_SPI_INSTANCE                 SPI4
 #define SDCARD_SPI_CS_PIN                   SPI4_NSS_PIN
@@ -123,14 +125,18 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER 8 // 27MHz
 
-#define SDCARD_DMA_CHANNEL_TX               DMA2_Stream1
+#define SDCARD_DMA_STREAM_TX_FULL           DMA2_Stream1
+#define SDCARD_DMA_TX                       DMA2
+#define SDCARD_DMA_STREAM_TX                1
+#define SDCARD_DMA_CLK                      LL_AHB1_GRP1_PERIPH_DMA2
+
 #define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG DMA_FLAG_TCIF1_5
-#define SDCARD_DMA_CLK                      RCC_AHB1Periph_DMA2
 #define SDCARD_DMA_CHANNEL                  DMA_CHANNEL_4
 
 #define USE_I2C
-#define USE_I2C_DEVICE_4
-#define I2C_DEVICE                  (I2CDEV_4)
+#define USE_I2C_DEVICE_2  // External I2C
+#define USE_I2C_DEVICE_4  // Onboard I2C
+#define I2C_DEVICE                  (I2CDEV_2)
 
 #define USE_ADC
 #define VBAT_ADC_PIN                PC0

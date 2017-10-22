@@ -44,6 +44,7 @@ typedef struct dmaChannelDescriptor_s {
 #endif
 
 #if defined(STM32F4) || defined(STM32F7)
+
 uint32_t dmaFlag_IT_TCIF(const DMA_Stream_TypeDef *stream);
 
 typedef enum {
@@ -77,7 +78,7 @@ typedef enum {
                                                                     dmaDescriptors[i].irqHandlerCallback(&dmaDescriptors[i]);\
                                                             }
 
-#define DMA_CLEAR_FLAG(d, flag) if(d->flagsShift > 31) d->dma->HIFCR = (flag << (d->flagsShift - 32)); else d->dma->LIFCR = (flag << d->flagsShift)
+#define DMA_CLEAR_FLAG(d, flag) if (d->flagsShift > 31) d->dma->HIFCR = (flag << (d->flagsShift - 32)); else d->dma->LIFCR = (flag << d->flagsShift)
 #define DMA_GET_FLAG_STATUS(d, flag) (d->flagsShift > 31 ? d->dma->HISR & (flag << (d->flagsShift - 32)): d->dma->LISR & (flag << d->flagsShift))
 
 
