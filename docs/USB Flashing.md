@@ -49,7 +49,7 @@ First, when connecting your FC to the computer, the LED on the board should ligh
 ```
 $ lsusb
 Bus 001 Device 025: ID 0483:5740 STMicroelectronics STM32F407
-$ lsusb -vs 001:025
+$ sudo lsusb -vs 001:025
 Bus 001 Device 025: ID 0483:5740 STMicroelectronics STM32F407
 Device Descriptor:
   bLength                18
@@ -66,9 +66,26 @@ Device Descriptor:
   iProduct                2 STM32 Virtual COM Port  
 ...
 ```
+If you do not get this far, or if your device is not listed, Linux has not managed to connect to it. This might be a driver issue. For example, some FCs use a CP2102 chip that translates USB protocol to serial. On the USB side (on your Linux computer), a special driver is needed that knows how to speak with a CP2102 chip. This driver is a file "cp210x.ko" . If you have this driver available, but it is not active, you can install it into your system (and then, check whether it was installed) with
 
+```
+$ sudo modprobe cp210x
+$ lsmod | grep cp210x
+cp210x                 24576  0
+usbserial              53248  1 cp210x
+```
 
+If `lsmod` shows the cp210x line, your system has successfully installed the driver.
+If you do not have the driver on your system, you can download it from https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers . Unpack the zip-File and follow the instructions (October 2017, the correct version was called 3.x.x/4.x.x and the instructions were in 'CP210x_VCP_Linux_3.13.x_Release_Notes.txt' which becomes visible only after unzipping).
 
+Note that for devices that use the CP2102 chip, the FC might not show under its real name, but instead the CP2102 bridge chip is reported as USB device by your computer. For example, with a NAZE - which has a CP2102 - the `lsusb` command will give you
+```
+$ lsusb
+Bus 001 Device 026: ID 10c4:ea60 Cygnal Integrated Products, Inc. CP210x UART Bridge / myAVR mySmartUSB light
+```
+
+After you checked that your Linux has hooked on with your FC, it is instructive to check the messages in the kernel message ring buffer. Here are the messages that are generated after first a NAZE is connected and disconnected again, then a SPRACINGF3EVO is connected, then the Cleanflight configurator is used to flash a new firmware on the SPRACINGF3EVO, and finally the SPRACINGF3EVO is disconnected. 
+The command to read the kernel message ring buffer is `dmesg`:
 ```
 $ sudo dmesg
 # connect a NAZE
@@ -127,33 +144,9 @@ $ sudo dmesg
 [ 9703.396560] usb 1-5: USB disconnect, device number 20
 ```
 
-If you see your ttyUSB device disappear right after the board is connected, chances are that the ModemManager service (that handles network connectivity for you) thinks it is a GSM modem. If this happens, you can issue the following command to disable the service:
-```
-sudo systemctl stop ModemManager.service 
-```
+From this log file, you can see that the NAZE is resulting in a device called "ttyUSB0" and the SPRACINGF3EVO results in a device ttyACM0. 
 
-If your system lacks the systemctl command, use any equivalent command that works on your system to disable services. You can likely add your device ID to a blacklist configuration file to stop ModemManager from touching the device, if you need it for cellural networking, but that is beyond the scope of cleanflight documentation.
-
-You can install the cp210x driver with
-```
-$ sudo modprobe cp210x
-$ lsmod | grep cp210x
-cp210x                 24576  0
-usbserial              53248  1 cp210x
-```
-When plugging in the USB cable with the FC, "dmesg" shows
-```
-$ dmesg
-[ 5742.227149] usb 1-6: new full-speed USB device number 47 using xhci_hcd
-[ 5742.356226] usb 1-6: New USB device found, idVendor=0483, idProduct=5740
-[ 5742.356235] usb 1-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[ 5742.356240] usb 1-6: Product: STM32 Virtual COM Port  
-[ 5742.356244] usb 1-6: Manufacturer: STMicroelectronics
-[ 5742.356248] usb 1-6: SerialNumber: 2059365F5433
-[ 5742.356510] usb 1-6: ep 0x82 - rounding interval to 1024 microframes, ep desc says 2040 microframes
-[ 5742.356945] cdc_acm 1-6:1.0: ttyACM0: USB ACM device
-```
-Sometimes, however, you get a problem and no device ttyACMx will be created. This may look like this:
+Sometimes, however, you get a problem and no device ttyACMx or ttyUSB0 will be created. This may look like this:
 ```
 [ 2776.729734] cdc_acm 1-6:1.0: ttyACM0: USB ACM device
 [ 2777.557676] usb 1-6: USB disconnect, device number 20
@@ -162,12 +155,24 @@ Sometimes, however, you get a problem and no device ttyACMx will be created. Thi
 
 Should you encounter this problem, it is probably the modem manager service that prevents Ubuntu from creating the device. Try killing it, and if that works, you might want to prevent it from restarting at the next reboot:
 ```
-leco@Hutia:~$ sudo systemctl --all | grep -i modem # lets find out the name of the service
+$ sudo systemctl --all | grep -i modem # lets find out the name of the service
   ModemManager.service  
 $ sudo service ModemManager stop
 $ # to make it persistent through reboot do:
 $ sudo systemctl disable ModemManager
 ```
+
+Now, you have a device, e.g. "ttyACM0" or "ttyUSB0". This device is found in the Linux file system at /dev/ttyACM0 or /dev/ttyUSB0. Have a look:
+```
+$ ll /dev/ttyACM0 
+crw-rw---- 1 root root 166, 0 Okt 29 17:39 /dev/ttyACM0
+```
+The device is owned by user root, group root, and only people in the group "root" are allowed to use it. This is a problem (which is mentioned above already) - unless you are root, you can not write to your FC, so the Cleanflight configurator will fail.
+It is possible to fix this issue by "chgrp" and "chmod" commands directly on the file /dev/ttyACM0. However you need to do that every time you reconnect or switch off your computer, so it is better to establish a udev rule for it.
+The udev rule will put all newly created /dev/ttyACMx devices into the group "plugdev". Put yourself into the group "plugdev" as described above (`sudo usermod -a -G plugdev <username>`), and you will have all necessary permissions to work with your FC.
+You establish the udev rule e.g. by creating a file `/etc/udev/rules.d/90-ttyACM-group-plugdev.rules` that contains a single line`KERNEL=="ttyACM[0-9]", GROUP="plugdev"`.
+Note you need to reboot your system once for the rule to take effect!
+
 
 In order to flash, the bootloader device for STM32 MCUs must be writable for the user (you), which, by default, is not the case. The following line establishes a rule that the STM32 bootloader device is in the 'plugdev' Unix group:
 ```
