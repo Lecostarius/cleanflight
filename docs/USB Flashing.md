@@ -63,7 +63,7 @@ Device Descriptor:
   iProduct                2 STM32 Virtual COM Port  
 ...
 ```
-If you do not get this far, or if your device is not listed, Linux has not managed to connect to it. This might be a driver issue. For example, some FCs use a CP2102 chip that translates USB protocol to serial. On the USB side (on your Linux computer), a special driver is needed that knows how to speak with a CP2102 chip. This driver is a file "cp210x.ko" . If you have this driver available, but it is not active, you can install it into your system (and then, check whether it was installed) with
+If your FC-device is not listed, Linux has not managed to connect to it. This might be a driver issue. For example, some FCs use a CP2102 chip that translates USB protocol to serial. On the USB side (on your Linux computer), a special driver is needed that knows how to speak with a CP2102 chip. This driver is a file "cp210x.ko" . If you have this driver available, but it is not active, you can install it into your system (and then, check whether it was installed) with
 
 ```
 $ sudo modprobe cp210x
@@ -141,9 +141,9 @@ $ sudo dmesg
 [ 9703.396560] usb 1-5: USB disconnect, device number 20
 ```
 
-From this log file, you can see that the NAZE is resulting in a device called "ttyUSB0" and the SPRACINGF3EVO results in a device ttyACM0. 
+From this log file, you can see that the NAZE is resulting in a device called "ttyUSB0" and the SPRACINGF3EVO results in a device "ttyACM0". 
 
-Sometimes, however, you get a problem and the freshly created device ttyACMx or ttyUSB0 will be destroyed immediately after creation. This may look like this:
+Sometimes, however, you get a problem and the freshly created device "ttyACMx" or "ttyUSBy" will be destroyed immediately after creation. This may look like this:
 ```
 [ 2776.729734] cdc_acm 1-6:1.0: ttyACM0: USB ACM device
 [ 2777.557676] usb 1-6: USB disconnect, device number 20
@@ -166,11 +166,16 @@ crw-rw---- 1 root root 166, 0 Okt 29 17:39 /dev/ttyACM0
 ```
 The device is owned by user root, group root, and only people in the group "root" are allowed to use it. This is a problem (which is mentioned above already) - unless you are root, you can not write to your FC, so the Cleanflight configurator will fail.
 It is possible to fix this issue by "chgrp" and "chmod" commands directly on the file /dev/ttyACM0. However, since USB devices are created on-the-fly when connection to the USB port happens, such a 'chmod' would have to be repeated every time when you plug in your board or after you switch off your computer.
+
 In order to have something that springs automatically into action every time a new USB device is connected, you can create a so-called udev rule. Every time a new device is activated in the kernel - i.e. if you plug in your FC board via USB - the kernel checks all the udev rules (in Ubuntu, they are in /etc/udev/rules.d/). If one of them applies to the new device, it is used.
-The rule needs to be smart - we do not want to have it applied to every USB device that is connected to the PC, like your USB stick or your mouse. It should only be applied to your FC. Luckily, this is possible, because USB devices tell the host computer a lot about themselves - they present things like their manufacturer and their product ID.
-ST Microelectronics, the manufacturer of the microcontroller on your FC, has the (internationally standardized) USB Vendor ID '0483'. Each of their chips has a special bootloader mode (the famous 'unbrickable bootloader', called DFU mode for Device Firmware Update) that identifies itself with a product ID of 'df11'. 
-Unfortunately, although all bootloaders of STM microcontrollers are the same, that is not true for the microcontrollers themselves, and therefore, not for the FCs. Therefore, a poor mans solution to a udev rule is one that will put all newly created /dev/ttyACMx devices into the group "plugdev". Put yourself into the group "plugdev" as described above (`sudo usermod -a -G plugdev <username>`), and you will have all necessary permissions to work with your FC.
-A slightly more sophisticated udev rule (which will put all STM microcontrollers into group "plugdev") can be established e.g. by 
+udev rules can - among other things - change the ownership, the group ownership, and the permissions of the new USB device file. So, a udev rule can be used to grant full access to the new USB device to everyone in a Unix group.
+
+The rule needs to be smart - we do not want to have it applied to every USB device that is connected to the PC, like your USB stick or your mouse. It should only be applied to your FC. Luckily, this is possible, because USB devices tell the host computer a lot about themselves - they present things like their manufacturer and their product ID. So, the udev rule should apply only to Flight Controllers.
+
+ST Microelectronics, the manufacturer of the microcontroller on your FC, has the (internationally standardized) USB Vendor ID '0483'. 
+
+
+A udev rule which will put all STM microcontrollers into group "plugdev" can be established e.g. by 
 ```
 (echo '# STM32 MCU)'
  echo 'SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", MODE="0664", GROUP="plugdev"') | sudo tee /etc/udev/rules.d/91-vendorSTM-group-plugdev.rules > /dev/null
@@ -182,17 +187,17 @@ Note you might need to reboot your system for the rule to take effect. Usually t
 $ sudo systemctl stop udev
 $ sudo systemctl start udev
 ```
+Connect your FC to USB, and then check the permissions of the resulting device file (e.g. /dev/ttyACM0). If the udev rule is set up properly, this device file should be group "plugdev" with group permissions "rw". Of course, you must be member of group "plugdev" to take advantage of it.
 
-When looking into the output of 'dmesg' above, you will have noticed that when the Cleanflight Configurator program was flashing the firmware, the USB device 'STM32 virtual COM port' disappeared (device 18), and instead, a new device appeared - the device 19, STM Bootloader. We can see that it has the idVendor=0483 and the idProduct df11. This is the bootloader, or the DFU mode of the STM32 microcontroller - the Cleanflight Configurator has made the FC to unplug itself (virtually) from your PC and to reconnect again as a different device!
-Since your FC can magically disguise as two different devices - a DFU bootloader device, which has commands to flash a firmware, and a serial interface, which can be used to speak the MultiWii protocol and talk to the Cleanflight Configurator (configuration section) - there might be two different Linux devices /dev/ttyXXX corresponding to the two modes of your FC.
+
+When looking into the output of 'dmesg' above, you will have noticed that when the Cleanflight Configurator program was flashing the firmware, the USB device 'STM32 virtual COM port' disappeared (device 18), and instead, a new device appeared - the device 19, "STM Bootloader". We can see that it has the idVendor 0483 and the idProduct df11. 
+Every STM32 microcontroller has a special bootloader mode (the famous 'unbrickable bootloader', called DFU mode for Device Firmware Update) that identifies itself with a product ID of 'df11'. 
+
+So, Cleanflight Configurator has made the FC to unplug itself (virtually) from your PC and to reconnect again as a different device!
+
+Since your FC can magically disguise as two different devices - a DFU bootloader device, which has commands to flash a firmware, and a serial interface, which can be used to speak the MultiWii protocol and talk to the Cleanflight Configurator (configuration section) - there might be two different Linux devices /dev/ttyXXX and /dev/ttyYYY corresponding to the two modes of your FC.
+
 Therefore, it is entirely possible to have read-write permissions of one of the two devices set up properly, but not for the other. This will lead to the situation that you can either flash your device, but not configure it in the Configurator, or configure it, but not flash it. Therefore, you should have two udev rules in place - one for the serial device for configuring, one for the DFU mode device for flashing.
-
-Since the DFU mode is entered dynamically during operation of the Cleanflight configurator, a udev rule is needed to make sure that the new device will properly be read-writable. This is the udev rule described above, and hopefully by now you can understand better why it is needed:
-
-```
-(echo '# DFU (Internal bootloader for STM32 MCUs)'
- echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="df11", MODE="0664", GROUP="plugdev"') | sudo tee /etc/udev/rules.d/45-stdfu-permissions.rules > /dev/null
-```
 
 If you ever manage to brick your FC, that means, to put a firmware on it that does not work, the Cleanflight Configurator is not able to talk to it, and might not be able to reset it into DFU mode in order to overwrite the broken firmware with a good one.
 This is where the "boot" pins on your FC come into play. If the two boot pins (might be named differently on your FC board) are connected when the FC is powered up (in our case: connected to USB), the FC board will automatically start up in DFU mode and identify itself not as a ACM or USB device (offering a serial interface) but as a DFU mode device. 
