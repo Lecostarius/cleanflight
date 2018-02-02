@@ -1,112 +1,98 @@
 # Building in Ubuntu
 
-Building for Ubuntu platform is remarkably easy. The only trick to understand is that the Ubuntu toolchain,
-which they are downstreaming from Debian, might not be compatible with Cleanflight. This applies to Ubuntu versions
-at least up to (and including) 16.04. For example, the cross-compiler that comes with Ubuntu 16.04 is version 4.9.3, 
-released in May 2015 while at the time of writing this article (October 2017), the most recent version was 6.3.1.
+## Short version:
+
+Assuming you have, say, a SPRACINGF3EVO board:
+
+```
+$ git clone git@github.com:cleanflight/cleanflight.git
+$ cd cleanflight
+$ make clean TARGET=SPRACINGF3EVO # only needed if you have old object files lying around
+$ make TARGET=SPRACINGF3EVO
+.
+(lots of output)
+.
+Linking SPRACINGF3EVO
+./tools/gcc-arm-none-eabi-6-2017-q2-update/bin/arm-none-eabi-size ./obj/main/cleanflight_SPRACINGF3EVO.elf
+   text	   data	    bss	    dec	    hex	filename
+ 241598	   7724	  32896	 282218	  44e6a	./obj/main/cleanflight_SPRACINGF3EVO.elf
+./tools/gcc-arm-none-eabi-6-2017-q2-update/bin/arm-none-eabi-objcopy -O ihex - -set-start 0x8000000 obj/main/cleanflight_SPRACINGF3EVO.elf obj/cleanflight_2.1.0_SPRACINGF3EVO.hex
+
+```
+
+If you have another board, just replace the TARGET by your board, e.g. for a Naze, you run `make TARGET=NAZE` instead of `make TARGET=SPRACINGF3EVO`. If you are unsure what the correct name of your board is, use 
+```
+$ make targets
+```
+ to get a full list of supported targets.
+
+The resulting .hex file can be found in the ./obj/ folder:
+```
+leco@Hutia:~/repositories/git/cleanflight$ ls -l obj/
+-rw-rw-r--  1 leco leco 387709 Okt 28 00:00 cleanflight_SPRACINGF3EVO.hex
+```
+This is the one you need to supply to the flashing tool (for instructions how to use the Cleanflight Configurator to flash under Ubuntu, see the manual section 'USB Flashing'.
+
+If you later want to build the same target again, it is good practice to clean up the old object files that are still lying around before building again:
+
+```
+$ make clean TARGET=SPRACINGF3EVO
+```
+
+## Short version, part 2:
+
+If you encounter a problem during compiling, it is likely caused by an incompatible ARM cross-compiler that was pre-installed on your Ubuntu. That is indicated by a message like
+```
+leco@Hutia:~/repositories/git/cleanflight$ make clean TARGET=SPRACINGF3EVO 
+make/tools.mk:296: *** **ERROR** your arm-none-eabi-gcc is '4.9.3', but '6.3.1' is expected. Override with 'GCC_REQUIRED_VERSION' in make/local.mk or run 'make arm_sdk_install' to install the right version automatically in the tools folder of this repo.  Stop.
+```
+
+In this case, un-install the incompatible cross-compiler by
+
+```
+sudo apt-get remove gcc-arm-none-eabi
+```
+
+Then, install the correct version. This is easiest done by the cleanflight make target 'arm_sdk_install':
+
+```
+$ make arm_sdk_install
+```
+
+This will download the latest version of the cross-compiler (can take a while). After that is finished, you should be ready to go - just do `make TARGET=SPRACINGF3EVO' (put your correct target board name here, of course).
+
+## Long version:
+
+The toolchain that is used for compiling a .hex file - the cross-compiler for ARM microcontrollers, called `arm-none-eabi-gcc`- is constantly maintained by ARM at https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads. 
+
+Different Ubuntu versions come with different versions (snapshots) of this cross-compiler, taken from the ARM website at different times. So, for example, the toolchain that comes with Ubuntu 16.04 is version 4.9.3, released in May 2015 while at the time of writing this article (October 2017), the most recent version on the ARM website was 6.3.1.
+  
 You can check your version by
 
 ```
 arm-none-eabi-gcc --version
 ```
 
-When using the version 4.9.3 the compilation will succeed but you might see a lot of warnings of the following type:
+If any version of the ARM crosscompiler ("arm-none-eabi-gcc") is already installed on your system, Cleanflight will try to use it (in old Makefiles, before Cleanflight version 2.0.0) or will notice that it is not the latest version and refuse to work (in all newer Makefiles after Cleanflight version 2.0.0). 
 
-```
-  .... uses 4-byte wchar_t yet the output is to use 2-byte wchar_t; use of wchar_t values across objects may fail
-```
+If you would like to compile an old version of Cleanflight (before 2.0), the Makefile will not download the current crosscompiler for you. It is easiest to use a Cleanflight version 2.x, and have the Makefile install it for you into the tools/ folder by `make arm_sdk_install`.
+Then, checkout - with git - the old version of Cleanflight you want to compile, set your PATH variable to point to the bin/ subdirectory of the gcc-arm-none-eabi.../ folder inside tools/, and make your TARGET again (do not forget to "make clean TARGET=SPRACINGF3EVO" before making the final hex file).
 
-If any version of the ARM crosscompiler ("arm-none-eabi-gcc") is installed, Cleanflight will use it. So, you must make sure that a correct
-and compatible version is installed. You do this by first uninstalling the existing, incompatible version by
+Rather than using `make arm_sdk_install`, it is also possible to download the latest cross-compiler directly from the ARM website https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads. Extract the copy into the tools/ folder of your cleanflight/ folder. The resulting folder structure should look like this:
 ```
-sudo apt-get remove binutils-arm-none-eabi gcc-arm-none-eabi
-```
-After this, you need to install a good version of "arm-none-eabi-gcc". 
-
-The steps you need to take depend on the version of Cleanflight you want to create. Starting with Cleanflight 2.0, the procedure is very easy, as the Makefile that comes with Cleanflight will take care of almost everything automatically - in particular, it will download the ARM cross-compiler if there is none installed. So, all you need to do after un-installing old incompatible versions of the cross-compiler is to say (example: for SPRACINGF3EVO):
-```
-$ git clone git@github.com:cleanflight/cleanflight.git
-$ cd cleanflight
-$ make TARGET=SPRACINGF3EVO
+leco@Hutia:~/repositories/git/cleanflight$ ls tools/
+gcc-arm-none-eabi-6-2017-q2-update
+leco@Hutia:~/repositories/git/cleanflight$ ls tools/gcc-arm-none-eabi-6-2017-q2-update/
+arm-none-eabi  bin  lib  share
 ```
 
-You will see a message that the cross-compiler is downloaded and installed. Then, you'll see a set of files being compiled, and finally linked, yielding both an ELF and then a HEX:
-```
-...
-arm-none-eabi-size ./obj/main/cleanflight_SPRACINGF3EVO.elf
-   text	   data	    bss	    dec	    hex	filename
- 135880	   1928	  20664	 158472	  26b08	./obj/main/cleanflight_SPRACINGF3EVO.elf
-arm-none-eabi-objcopy -O ihex --set-start 0x8000000 obj/main/cleanflight_SPRACINGF3EVO.elf obj/cleanflight_SPRACINGF3EVO.hex
 
-leco@Hutia:~/repositories/git/cleanflight$ ls -la obj/
--rw-rw-r--  1 leco leco 387709 Okt 28 00:00 cleanflight_SPRACINGF3EVO.hex
+## Old version of the document
 
-```
-
-You can use the Cleanflight-Configurator to flash the ```obj/cleanflight_SPRACINGF3EVO.hex``` file.
-
-If you would like to compile an old version of Cleanflight (before 2.0), the Makefile will not download the 
-current crosscompiler for you. It is easiest to use a Cleanflight version 2.x, and make any TARGET, e.g. SPRACINGF3EVO (just as described above). The cross-compiler is downloaded and installed into the directory cleanflight/tools. Then, checkout - with git - the old version of Cleanflight you want to compile, set your PATH variable to point to the bin/ subdirectory of the gcc-arm-none-eabi.../ folder inside tools/, and make your TARGET again (do not forget to "make clean TARGET=SPRACINGF3EVO" before making the final hex file).
+__The following is outdated and kept only for historical reasons and in the vague hope that it can still be of help for someone.__
 
 
-## Flashing the resulting hex file
-You can install the cp210x driver with
-```
-$ sudo modprobe cp210x
-$ lsmod | grep cp210x
-cp210x                 24576  0
-usbserial              53248  1 cp210x
-```
-When plugging in the USB cable with the FC, "dmesg" shows
-```
-$ dmesg
-[ 5742.227149] usb 1-6: new full-speed USB device number 47 using xhci_hcd
-[ 5742.356226] usb 1-6: New USB device found, idVendor=0483, idProduct=5740
-[ 5742.356235] usb 1-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[ 5742.356240] usb 1-6: Product: STM32 Virtual COM Port  
-[ 5742.356244] usb 1-6: Manufacturer: STMicroelectronics
-[ 5742.356248] usb 1-6: SerialNumber: 2059365F5433
-[ 5742.356510] usb 1-6: ep 0x82 - rounding interval to 1024 microframes, ep desc says 2040 microframes
-[ 5742.356945] cdc_acm 1-6:1.0: ttyACM0: USB ACM device
-```
-Sometimes, however, you get a problem and no device ttyACMx will be created. This may look like this:
-```
-[ 2776.729734] cdc_acm 1-6:1.0: ttyACM0: USB ACM device
-[ 2777.557676] usb 1-6: USB disconnect, device number 20
-[ 2777.557864] cdc_acm 1-6:1.0: failed to set dtr/rts
-```
-
-Should you encounter this problem, it is probably the modem manager service that prevents Ubuntu from creating the device. Try killing it, and if that works, you might want to prevent it from restarting at the next reboot:
-```
-leco@Hutia:~$ sudo systemctl --all | grep -i modem # lets find out the name of the service
-  ModemManager.service  
-$ sudo service ModemManager stop
-$ # to make it persistent through reboot do:
-$ sudo systemctl disable ModemManager
-```
-
-In order to flash, the bootloader device for STM32 MCUs must be writable for the user (you), which, by default, is not the case. The following line establishes a rule that the STM32 bootloader device is in the 'plugdev' Unix group:
-```
-$ (echo '# DFU (Internal bootloader for STM32 MCUs)'
- echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="df11", MODE="0664", GROUP="plugdev"') | sudo tee /etc/udev/rules.d/45-stdfu-permissions.rules > /dev/null
-```
-Anyone who is in the 'plugdev' group may now write to the STM32 bootloader device. If you are not, make yourself member by
-
-```
-sudo usermod -a -G plugdev <username>
-```
-
-Also it says you should create a file 
-`/etc/udev/rules.d/90-ttyACM-group-plugdev.rules`
-that contains 
-`KERNEL=="ttyACM[0-9]", GROUP="plugdev"`
- 
-
-
-
-
-We suggest that you take an
-alternative PPA from Terry Guo, found here:
+We suggest that you take an alternative PPA from Terry Guo, found here:
 https://launchpad.net/~terry.guo/+archive/ubuntu/gcc-arm-embedded
 
 This PPA has several compiler versions and platforms available. For many hardware platforms (notably Naze)
