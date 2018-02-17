@@ -1,3 +1,43 @@
+IntelliSense in VSCode
+----------------------
+I faced difficulties with IntelliSense being unable to accept int16_t and others (uint32_t etc) as legal,
+they always turned up as "undefined" even if c_cpp_properties.json was edited accordingly (they are defined
+in stdint.h). The solution is to put the line 
+"${workspaceRoot}/tools/gcc-arm-none-eabi-6-2017-q2-update/arm-none-eabi/include",
+before the other include lines in the "Win" section of c_cpp_properties.json. 
+
+Then, I changed 
+"intelliSenseMode": "clang-x64",
+
+This is to tell IntelliSense that we do not have a Visual Studio Microsoft compiler, but a very unix-style compiler.
+
+and modified:
+           "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "__cdecl=__attribute__((__cdecl__))"
+                "STM32F303xC",
+                "__GNUC__"
+
+The __GNUC__ keyword is needed since inside the ARM toolchain, in "core_cm4.h" (probably similar for
+F1 boards, where this is "core_cm3.h"), it is checked which compiler is used for compilation of the STM
+libraries. Dependent on the compiler, some preprocessor constants (like __ASM) are set. Therefore, we need
+to tell "core_cm4.h" that we use a gcc (flavor of gcc) for compilation.
+
+The __attribute__ thingy is there since there is the special __attribute__ keyword that is only known to gcc
+and gcc-arm-eabi, but VSCode does not know about it. To avoid related errors the define is needed.
+
+Then, when 'make' is run, typically a TARGET is specified which will set some preprocessor constants depending
+on what we make - e.g. if we make for a SPRACINGF3EVO, the variable STM32F303xC is set. This is very important
+since dependent on this variables, a lot of other includes and defines are done.
+
+"limits.h" is a particular case. Standard variants of limits.h seem to contain non-ANSI-Headers, and gcc can not 
+cope with that. Therefore, there is a "fixincludes" process, that changes the limits.h and creates a system specific 
+one. This is in the directory tools/gcc-arm-none-eabi-6-2017-q2-update/lib/gcc/arm-none-eabi/6.3.1/include-fixed. 
+Unfortunately, I did not find a way yet to make IntelliSense find a working limits.h without destroying the uint32_t 
+typedefs... to be continued.
+
+
 Overall structure of Cleanflight / Betaflight / iNav
 ----------------------------------------------------
 
@@ -70,6 +110,9 @@ lib/		this contains test/ and main/, where main/ contains the STM32 files for th
 The src/ directory
 
 There are two subdirs, main/ and test/. Here is the content of main/:
+
+The file "mw.c" has been renamed to "fc_main.c" and later split up in several (I think) like "fc_core.c". Here
+is the SHA-1 of the relevant commit that renamed mw.c: 21463656c788ecbdaf88f1cc2f25bcdd03d47f11
 
 
 main/ contains 12 directories and 7 c files (and 6 header files).
