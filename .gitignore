@@ -35,7 +35,8 @@ stm32.mak
 /support/eclipse
 
 # artefacts for Visual Studio Code
-/.vscode/
+# actually, they are tedious to make, so I want to have them
+#/.vscode/
 
 # artefacts for CLion
 /cmake-build-debug/
